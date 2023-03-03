@@ -1,21 +1,21 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
  * and at https://www.swig.org/legal.html.
  *
- * mzscheme.cxx
+ * postgresql.cxx
  *
- * Mzscheme language module for SWIG.
+ * PostgreSQL language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
 #include <ctype.h>
 
 static const char *usage = "\
-Mzscheme Options (available with -mzscheme)\n\
+PostgreSQL Options (available with -postgresql)\n\
      -declaremodule                - Create extension that declares a module\n\
      -dynamic-load <lib>,[lib,...] - Do not link with these libraries, dynamic load them\n\
      -noinit                       - Do not emit module initialization code\n\
@@ -33,7 +33,7 @@ static bool declaremodule = false;
 static bool noinit = false;
 static String *load_libraries = NULL;
 static String *module = 0;
-static const char *mzscheme_path = "mzscheme";
+static const char *postgresql_path = "postgresql";
 static String *init_func_def = 0;
 
 static File *f_begin = 0;
@@ -47,7 +47,7 @@ static int exporting_destructor = 0;
 static String *swigtype_ptr = 0;
 static String *cls_swigtype = 0;
 
-class MZSCHEME:public Language {
+class POSTGRESQL:public Language {
 public:
 
   /* ------------------------------------------------------------
@@ -58,7 +58,7 @@ public:
 
     int i;
 
-     SWIG_library_directory(mzscheme_path);
+     SWIG_library_directory(postgresql_path);
 
     // Look for certain command line options
     for (i = 1; i < argc; i++) {
@@ -105,14 +105,14 @@ public:
 
     // Add a symbol for this module
 
-    Preprocessor_define("SWIGMZSCHEME 1", 0);
+    Preprocessor_define("SWIGPOSTGRESQL 1", 0);
 
     // Set name of typemaps
 
-    SWIG_typemap_lang("mzscheme");
+    SWIG_typemap_lang("postgresql");
 
     // Read in default typemaps */
-    SWIG_config_file("mzscheme.swg");
+    SWIG_config_file("postgresql.swg");
     allow_overloading();
 
   }
@@ -147,38 +147,40 @@ public:
 
     Swig_banner(f_begin);
 
-    Swig_obligatory_macros(f_runtime, "MZSCHEME");
+    Swig_obligatory_macros(f_runtime, "POSTGRESQL");
 
     module = Getattr(n, "name");
+
+    Printf(f_runtime, "\nstatic const char * swig_pg_module_name_cstr = \"%s\";\n\n", module);
 
     Language::top(n);
 
     SwigType_emit_type_table(f_runtime, f_wrappers);
     if (!noinit) {
       if (declaremodule) {
-	Printf(f_init, "#define SWIG_MZSCHEME_CREATE_MENV(env) scheme_primitive_module(scheme_intern_symbol(\"%s\"), env)\n", module);
+	Printf(f_init, "#define SWIG_POSTGRESQL_CREATE_MENV(env) swig_pg_primitive_module(swig_pg_intern_symbol(\"%s\"), env)\n", module);
       } else {
-	Printf(f_init, "#define SWIG_MZSCHEME_CREATE_MENV(env) (env)\n");
+	Printf(f_init, "#define SWIG_POSTGRESQL_CREATE_MENV(env) (env)\n");
       }
       Printf(f_init, "%s\n", Char(init_func_def));
       if (declaremodule) {
-	Printf(f_init, "\tscheme_finish_primitive_module(menv);\n");
+	Printf(f_init, "\tswig_pg_finish_primitive_module(menv);\n");
       }
-      Printf(f_init, "\treturn scheme_void;\n}\n");
-      Printf(f_init, "Scheme_Object *scheme_initialize(Scheme_Env *env) {\n");
+      Printf(f_init, "\treturn swig_pg_void;\n}\n");
+      Printf(f_init, "swig_pg_value swig_pg_initialize(SWIG_PG_Env *env) {\n");
 
       if (load_libraries) {
-	Printf(f_init, "mz_set_dlopen_libraries(\"%s\");\n", load_libraries);
+	Printf(f_init, "swig_pg_set_dlopen_libraries(\"%s\");\n", load_libraries);
       }
 
-      Printf(f_init, "\treturn scheme_reload(env);\n");
+      Printf(f_init, "\treturn swig_pg_reload(env);\n");
       Printf(f_init, "}\n");
 
-      Printf(f_init, "Scheme_Object *scheme_module_name(void) {\n");
+      Printf(f_init, "swig_pg_value swig_pg_module_name(void) {\n");
       if (declaremodule) {
-	Printf(f_init, "   return scheme_intern_symbol((char*)\"%s\");\n", module);
+	Printf(f_init, "   return swig_pg_intern_symbol((char*)\"%s\");\n", module);
       } else {
-	Printf(f_init, "   return scheme_make_symbol((char*)\"%s\");\n", module);
+	Printf(f_init, "   return swig_pg_make_symbol((char*)\"%s\");\n", module);
       }
       Printf(f_init, "}\n");
     }
@@ -201,7 +203,7 @@ public:
    * Create a function declaration and register it with the interpreter.
    * ------------------------------------------------------------ */
 
-  void throw_unhandled_mzscheme_type_error(SwigType *d) {
+  void throw_unhandled_postgresql_type_error(SwigType *d) {
     Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number, "Unable to handle type %s.\n", SwigType_str(d, 0));
   }
 
@@ -255,12 +257,12 @@ public:
 
     // Build the name for Scheme.
     Printv(proc_name, iname, NIL);
-    Replaceall(proc_name, "_", "-");
+    // Replaceall(proc_name, "_", "-");
 
     // writing the function wrapper function
-    Printv(f->def, "static Scheme_Object *", wname, " (", NIL);
-    Printv(f->def, "int argc, Scheme_Object **argv", NIL);
-    Printv(f->def, ")\n{", NIL);
+    Printv(f->def, "PG_FUNCTION_INFO_V1(", wname, ");\n", NIL);
+    Printv(f->def, "swig_pg_value ", wname, "(PG_FUNCTION_ARGS) {\n", NIL);
+    Printv(f->def, "swig_pg_value _swig_result;\n", NIL);
 
     /* Define the scheme name in C. This define is used by several
        macros. */
@@ -288,12 +290,12 @@ public:
     }
 
     // adds local variables
-    Wrapper_add_local(f, "lenv", "int lenv = 1");
-    Wrapper_add_local(f, "values", "Scheme_Object *values[MAXVALUES]");
+    // Wrapper_add_local(f, "lenv", "int lenv = 1");
+    // Wrapper_add_local(f, "values", "swig_pg_value values[MAXVALUES]");
 
     if (load_libraries) {
-      Printf(f->code, "if (!_function_loaded) { _the_function=mz_load_function(\"%s\");_function_loaded=(1==1); }\n", iname);
-      Printf(f->code, "if (!_the_function) { scheme_signal_error(\"Cannot load C function '%s'\"); }\n", iname);
+      Printf(f->code, "if (!_function_loaded) { _the_function=postgresql_load_function(\"%s\");_function_loaded=(1==1); }\n", iname);
+      Printf(f->code, "if (!_the_function) { swig_pg_signal_error(\"Cannot load C function '%s'\"); }\n", iname);
       Printf(f->code, "caller=_the_function;\n");
     }
 
@@ -312,13 +314,13 @@ public:
       // Produce names of source and target
       Clear(target);
       Clear(arg);
-      String *source = NewStringf("argv[%d]", i);
+      String *source = NewStringf("PG_GETARG_DATUM(%d)", i);
       Printf(target, "%s", ln);
       Printv(arg, Getattr(p, "name"), NIL);
 
-      if (i >= numreq) {
-	Printf(f->code, "if (argc > %d) {\n", i);
-      }
+      // if (i >= numreq) {
+	// Printf(f->code, "if (argc > %d) {\n", i);
+      // }
       // Handle parameter types.
       if ((tm = Getattr(p, "tmap:in"))) {
 	Replaceall(tm, "$input", source);
@@ -328,7 +330,7 @@ public:
       } else {
 	// no typemap found
 	// check if typedef and resolve
-	throw_unhandled_mzscheme_type_error(pt);
+	throw_unhandled_postgresql_type_error(pt);
 	p = nextSibling(p);
       }
       if (i >= numreq) {
@@ -378,14 +380,14 @@ public:
 
     // Now have return value, figure out what to do with it.
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
-      Replaceall(tm, "$result", "values[0]");
+      Replaceall(tm, "$result", "_swig_result");
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "1");
       else
 	Replaceall(tm, "$owner", "0");
       Printv(f->code, tm, "\n", NIL);
     } else {
-      throw_unhandled_mzscheme_type_error(d);
+      throw_unhandled_postgresql_type_error(d);
     }
     emit_return_variable(n, d, f);
 
@@ -409,7 +411,13 @@ public:
     }
     // Wrap things up (in a manner of speaking)
 
-    Printv(f->code, tab4, "return SWIG_MzScheme_PackageValues(lenv, values);\n", NIL);
+    // TODO: use some sort of typemap to determine the name of the PG_RETURN_XXX macro:
+    // const char *pg_TYPE = "XXXX";
+    // Printv(f->code, tab4, "PG_RETURN_", pg_TYPE, "(result);\n", NIL);
+
+    // FIXME: This subverts the PG_RETURN_XXX macro abstraction:
+    Printv(f->code, tab4, "return _swig_result;\n", NIL);
+
     Printf(f->code, "#undef FUNC_NAME\n");
     Printv(f->code, "}\n", NIL);
 
@@ -426,7 +434,7 @@ public:
       if (exporting_destructor) {
 	Printf(init_func_def, "SWIG_TypeClientData(SWIGTYPE%s, (void *) %s);\n", swigtype_ptr, wname);
       }
-      Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, wname, proc_name, numreq, numargs);
+      Printf(init_func_def, "swig_pg_add_global(\"%s\", swig_pg_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, wname, proc_name, numreq, numargs);
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
 	/* Emit overloading dispatch function */
@@ -439,13 +447,14 @@ public:
 	Wrapper *df = NewWrapper();
 	String *dname = Swig_name_wrapper(iname);
 
-	Printv(df->def, "static Scheme_Object *\n", dname, "(int argc, Scheme_Object **argv) {", NIL);
+  Printv(f->def, "PG_FUNCTION_INFO_V1(", dname, ");\n", NIL);
+	Printv(df->def, "swig_pg_value\n", dname, "(PG_FUNCTION_ARGS) {", NIL);
 	Printv(df->code, dispatch, "\n", NIL);
-	Printf(df->code, "scheme_signal_error(\"No matching function for overloaded '%s'\");\n", iname);
+	Printf(df->code, "swig_pg_signal_error(\"No matching function for overloaded '%s'\");\n", iname);
 	Printf(df->code, "return NULL;\n");
 	Printv(df->code, "}\n", NIL);
 	Wrapper_print(df, f_wrappers);
-	Printf(init_func_def, "scheme_add_global(\"%s\", scheme_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, dname, proc_name, 0, maxargs);
+	Printf(init_func_def, "swig_pg_add_global(\"%s\", swig_pg_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, dname, proc_name, 0, maxargs);
 	DelWrapper(df);
 	Delete(dispatch);
 	Delete(dname);
@@ -500,11 +509,11 @@ public:
     Setattr(n, "wrap:name", proc_name);
 
     if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
-
-      Printf(f->def, "static Scheme_Object *%s(int argc, Scheme_Object** argv) {\n", var_name);
+      Printf(f->def, "PG_FUNCTION_INFO_V1(%s);\n", var_name);
+      Printf(f->def, "swig_pg_value %s(PG_FUNCTION_ARGS) {\n", var_name);
       Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
 
-      Wrapper_add_local(f, "swig_result", "Scheme_Object *swig_result");
+      Wrapper_add_local(f, "swig_result", "swig_pg_value swig_result");
 
       if (!GetFlag(n, "feature:immutable")) {
 	/* Check for a setting of the variable value */
@@ -514,7 +523,7 @@ public:
 	  Replaceall(tm, "$argnum", "1");
 	  emit_action_code(n, f->code, tm);
 	} else {
-	  throw_unhandled_mzscheme_type_error(t);
+	  throw_unhandled_postgresql_type_error(t);
 	}
 	Printf(f->code, "}\n");
       }
@@ -526,7 +535,7 @@ public:
 	/* Printf (f->code, "%s\n", tm); */
 	emit_action_code(n, f->code, tm);
       } else {
-	throw_unhandled_mzscheme_type_error(t);
+	throw_unhandled_postgresql_type_error(t);
       }
       Printf(f->code, "\nreturn swig_result;\n");
       Printf(f->code, "#undef FUNC_NAME\n");
@@ -534,10 +543,10 @@ public:
 
       Wrapper_print(f, f_wrappers);
 
-      // Now add symbol to the MzScheme interpreter
+      // Now add symbol to the POSTGRESQL interpreter
 
       Printv(init_func_def,
-	     "scheme_add_global(\"", proc_name, "\", scheme_make_prim_w_arity(", var_name, ", \"", proc_name, "\", ", "0", ", ", "1", "), menv);\n", NIL);
+	     "swig_pg_add_global(\"", proc_name, "\", swig_pg_make_prim_w_arity(", var_name, ", \"", proc_name, "\", ", "0", ", ", "1", "), menv);\n", NIL);
 
     } else {
       Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number, "Unsupported variable type %s (ignored).\n", SwigType_str(t, 0));
@@ -663,22 +672,22 @@ public:
 
     Printv(fieldnames_tab, "static const char *_swig_struct_", cls_swigtype, "_field_names[] = { \n", NIL);
 
-    Printv(convert_proto_tab, "static Scheme_Object *_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ");\n", NIL);
+    Printv(convert_proto_tab, "static swig_pg_value_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ");\n", NIL);
 
-    Printv(convert_tab, "static Scheme_Object *_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ")\n {\n", NIL);
+    Printv(convert_tab, "static swig_pg_value_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ")\n {\n", NIL);
 
     Printv(convert_tab,
-	   tab4, "Scheme_Object *obj;\n", tab4, "Scheme_Object *fields[_swig_struct_", cls_swigtype, "_field_names_cnt];\n", tab4, "int i = 0;\n\n", NIL);
+	   tab4, "swig_pg_value obj;\n", tab4, "swig_pg_value fields[_swig_struct_", cls_swigtype, "_field_names_cnt];\n", tab4, "int i = 0;\n\n", NIL);
 
     /* Generate normal wrappers */
     Language::classHandler(n);
 
-    Printv(convert_tab, tab4, "obj = scheme_make_struct_instance(", "_swig_struct_type_", cls_swigtype, ", i, fields);\n", NIL);
+    Printv(convert_tab, tab4, "obj = swig_pg_make_struct_instance(", "_swig_struct_type_", cls_swigtype, ", i, fields);\n", NIL);
     Printv(convert_tab, tab4, "return obj;\n}\n\n", NIL);
 
     Printv(fieldnames_tab, "};\n", NIL);
 
-    Printv(f_header, "static Scheme_Object *_swig_struct_type_", cls_swigtype, ";\n", NIL);
+    Printv(f_header, "static swig_pg_value_swig_struct_type_", cls_swigtype, ";\n", NIL);
 
     Printv(f_header, fieldnames_tab, NIL);
     Printv(f_header, "#define  _swig_struct_", cls_swigtype, "_field_names_cnt (sizeof(_swig_struct_", cls_swigtype, "_field_names)/sizeof(char*))\n", NIL);
@@ -687,7 +696,7 @@ public:
     Printv(f_wrappers, convert_tab, NIL);
 
     Printv(init_func_def, "_swig_struct_type_", cls_swigtype,
-	   " = SWIG_MzScheme_new_scheme_struct(menv, \"", scm_structname, "\", ",
+	   " = SWIG_POSTGRESQL_new_swig_pg_struct(menv, \"", scm_structname, "\", ",
 	   "_swig_struct_", cls_swigtype, "_field_names_cnt,", "(char**) _swig_struct_", cls_swigtype, "_field_names);\n", NIL);
 
     Delete(swigtype_ptr);
@@ -741,6 +750,7 @@ public:
    * validIdentifier()
    * ------------------------------------------------------------ */
 
+  // !!! : FIXME
   virtual int validIdentifier(String *s) {
     char *c = Char(s);
     /* Check whether we have an R5RS identifier. */
@@ -771,26 +781,26 @@ public:
   }
 
   String *runtimeCode() {
-    String *s = Swig_include_sys("mzrun.swg");
+    String *s = Swig_include_sys("postgresql_run.swg");
     if (!s) {
-      Printf(stderr, "*** Unable to open 'mzrun.swg'\n");
+      Printf(stderr, "*** Unable to open 'postgresql_run.swg'\n");
       s = NewString("");
     }
     return s;
   }
 
   String *defaultExternalRuntimeFilename() {
-    return NewString("swigmzrun.h");
+    return NewString("swig_posgresql_run.h");
   }
 };
 
 /* -----------------------------------------------------------------------------
- * swig_mzscheme()    - Instantiate module
+ * swig_postgresql()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-static Language *new_swig_mzscheme() {
-  return new MZSCHEME();
+static Language *new_swig_postgresql() {
+  return new POSTGRESQL();
 }
-extern "C" Language *swig_mzscheme(void) {
-  return new_swig_mzscheme();
+extern "C" Language *swig_postgresql(void) {
+  return new_swig_postgresql();
 }

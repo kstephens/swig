@@ -1,175 +1,149 @@
 /* -----------------------------------------------------------------------------
- * mzrun.swg
+ * postgresql_run.swg
  * ----------------------------------------------------------------------------- */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <escheme.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/*
+#include "server/c.h"
+#include "server/utils/palloc.h"
+#include "server/fmgr.h"
+*/
+
+// See: http://big-elephants.com/2015-10/writing-postgres-extensions-part-i/
+#include "postgres.h"
+#include "c.h"
+#include "fmgr.h"
+#include "utils/builtins.h"
+
+
+PG_MODULE_MAGIC;
+
 /* Common SWIG API */
-  
+
+#define swig_pg_void       ((Datum) 0)
+#define swig_pg_true       BoolGetDatum(1)
+#define swig_pg_false      BoolGetDatum(0)
+#define swig_pg_malloc(X)  palloc(X)
+#define swig_pg_free(X)    pfree(X)
+#define swig_pg_value      Datum
+
+static void _swig_pg_signal_error(const char *fmt, ...) {
+  va_list va;
+  va_start(va, fmt);
+  fprintf(stderr, "ERROR : SWIG : %s : ", swig_pg_module_name_cstr);
+  vfprintf(stderr, fmt, va);
+  fprintf(stderr, "\n\n");
+  fflush(stderr);
+  va_end(va);
+  // ??? : does PG have exception processing?
+}
+
+static void _swig_pg_wrong_type(const char* func_name, const char *msg, int argnum, int argc, void** argv) {
+  char str[1024];
+  snprintf(str, sizeof(str) - 1, "%s : %s : argnum %d", func_name, msg, argnum);
+  _swig_pg_signal_error("%s", str);
+}
+
+#define swig_pg_signal_error(FMT, ...) \
+({ _swig_pg_signal_error(FMT, # __VA_ARGS__); PG_RETURN_NULL(); })
+
+#define swig_pg_wrong_type(FMT, ...) \
+({ _swig_pg_wrong_type(FMT, # __VA_ARGS__); PG_RETURN_NULL(); })
+
 #define SWIG_ConvertPtr(s, result, type, flags) \
-  SWIG_MzScheme_ConvertPtr(s, result, type, flags)
+  SWIG_PG_ConvertPtr(s, result, type, flags)
 #define SWIG_NewPointerObj(ptr, type, owner) \
-  SWIG_MzScheme_NewPointerObj((void *)ptr, type, owner)
+  SWIG_PG_NewPointerObj((void *)ptr, type, owner)
 #define SWIG_MustGetPtr(s, type, argnum, flags) \
-  SWIG_MzScheme_MustGetPtr(s, type, argnum, flags, FUNC_NAME, argc, argv)
+  SWIG_PG_MustGetPtr(s, type, argnum, flags, FUNC_NAME, argc, argv)
 
 #define SWIG_contract_assert(expr,msg) \
   do { \
     if (!(expr)) { \
-      char *m=(char *) scheme_malloc(strlen(msg)+1000); \
+      char *m=(char *) swig_pg_malloc(strlen(msg)+1000); \
       sprintf(m,"SWIG contract, assertion failed: function=%s, message=%s", \
               (char *) FUNC_NAME,(char *) msg); \
-      scheme_signal_error(m); \
+      swig_pg_signal_error(m); \
     } \
   } while (0)
 
 /* Runtime API */
-#define SWIG_GetModule(clientdata) SWIG_MzScheme_GetModule((Scheme_Env *)(clientdata))
-#define SWIG_SetModule(clientdata, pointer) SWIG_MzScheme_SetModule((Scheme_Env *) (clientdata), pointer)
-#define SWIG_MODULE_CLIENTDATA_TYPE Scheme_Env *
+#define SWIG_GetModule(clientdata) SWIG_PG_GetModule((SWIG_PG_Env *)(clientdata))
+#define SWIG_SetModule(clientdata, pointer) SWIG_PG_SetModule((SWIG_PG_Env *) (clientdata), pointer)
+#define SWIG_MODULE_CLIENTDATA_TYPE SWIG_PG_Env *
 
-/* MzScheme-specific SWIG API */
-  
-#define SWIG_malloc(size) SWIG_MzScheme_Malloc(size, FUNC_NAME)
-#define SWIG_free(mem) free(mem)
+/* PostgreSQL-specific SWIG API */
+
+#define SWIG_malloc(size) swig_pg_malloc_(size, FUNC_NAME)
+#define SWIG_free(mem) swig_pg_free(mem)
 #define SWIG_NewStructFromPtr(ptr,type) \
         _swig_convert_struct_##type##(ptr)
 
 #define MAXVALUES 6
-#define swig_make_boolean(b) (b ? scheme_true : scheme_false)
+#define swig_make_boolean(b) (b ? swig_pg_true : swig_pg_false)
 
-static long
-SWIG_convert_integer(Scheme_Object *o,
-		     long lower_bound, long upper_bound, 
-		     const char *func_name, int argnum, int argc,
-		     Scheme_Object **argv)
-{
-  long value;
-  int status = scheme_get_int_val(o, &value);
-  if (!status)
-    scheme_wrong_type(func_name, "integer", argnum, argc, argv);
-  if (value < lower_bound || value > upper_bound)
-    scheme_wrong_type(func_name, "integer", argnum, argc, argv);
-  return value;
-}
 
-static int
-SWIG_is_integer(Scheme_Object *o)
-{
-  long value;
-  return scheme_get_int_val(o, &value);
-}
+typedef void *SWIG_PG_Type;
 
-static unsigned long
-SWIG_convert_unsigned_integer(Scheme_Object *o,
-			      unsigned long lower_bound, unsigned long upper_bound, 
-			      const char *func_name, int argnum, int argc,
-			      Scheme_Object **argv)
-{
-  unsigned long value;
-  int status = scheme_get_unsigned_int_val(o, &value);
-  if (!status)
-    scheme_wrong_type(func_name, "integer", argnum, argc, argv);
-  if (value < lower_bound || value > upper_bound)
-    scheme_wrong_type(func_name, "integer", argnum, argc, argv);
-  return value;
-}
-
-static int
-SWIG_is_unsigned_integer(Scheme_Object *o)
-{
-  unsigned long value;
-  return scheme_get_unsigned_int_val(o, &value);
-}
-  
-/* ----------------------------------------------------------------------- 
- * mzscheme 30X support code
- * ----------------------------------------------------------------------- */
-
-#ifndef SCHEME_STR_VAL
-#define MZSCHEME30X 1
-#endif
-
-#ifdef MZSCHEME30X 
-/* 
- * This is MZSCHEME 299.100 or higher (30x).  From version 299.100 of
- * mzscheme upwards, strings are in unicode. These functions convert
- * to and from utf8 encodings of these strings.  NB! strlen(s) will be
- * the size in bytes of the string, not the actual length.
- */
-#define SCHEME_STR_VAL(obj)  	       SCHEME_BYTE_STR_VAL(scheme_char_string_to_byte_string(obj))
-#define SCHEME_STRLEN_VAL(obj)         SCHEME_BYTE_STRLEN_VAL(scheme_char_string_to_byte_string(obj))
-#define SCHEME_STRINGP(obj)            SCHEME_CHAR_STRINGP(obj)
-#define scheme_make_string(s)          scheme_make_utf8_string(s)
-#define scheme_make_sized_string(s,l)  scheme_make_sized_utf8_string(s,l)
-#define scheme_make_sized_offset_string(s,d,l) \
-                   scheme_make_sized_offset_utf8_string(s,d,l)
-#define SCHEME_MAKE_STRING(s) scheme_make_utf8_string(s)
-#else
-#define SCHEME_MAKE_STRING(s) scheme_make_string_without_copying(s)
-#endif
-/* ----------------------------------------------------------------------- 
- * End of mzscheme 30X support code 
- * ----------------------------------------------------------------------- */
-  
-struct swig_mz_proxy {
-  Scheme_Type mztype;
+struct swig_pg_proxy {
+  SWIG_PG_Type pgtype;
   swig_type_info *type;
   void *object;
   int own;
 };
 
-static Scheme_Type swig_type;
+static SWIG_PG_Type swig_type;
 
-static void 
-mz_free_swig(void *p, void *data) {
-  struct swig_mz_proxy *proxy = (struct swig_mz_proxy *) p;
-  if (SCHEME_NULLP((Scheme_Object*)p) || SCHEME_TYPE((Scheme_Object*)p) != swig_type)
+static void
+pg_free_swig(void *p, void *data) {
+  struct swig_pg_proxy *proxy = (struct swig_pg_proxy *) p;
+  if (SWIG_PG_NULLP((swig_pg_value )p) || SWIG_PG_TYPE((swig_pg_value )p) != swig_type)
     return;
   if (proxy->type) {
     if (proxy->type->clientdata && proxy->own) {
-      ((Scheme_Prim *)proxy->type->clientdata)(1, (Scheme_Object **)&proxy);
+      ((SWIG_PG_Prim *)proxy->type->clientdata)(1, (swig_pg_value *)&proxy);
     }
   }
 }
 
-static Scheme_Object *
-SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
+static swig_pg_value
+SWIG_PG_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
   if (ptr) {
-    struct swig_mz_proxy *new_proxy;
-    new_proxy = (struct swig_mz_proxy *) scheme_malloc(sizeof(struct swig_mz_proxy));
-    new_proxy->mztype = swig_type;
+    struct swig_pg_proxy *new_proxy;
+    new_proxy = (struct swig_pg_proxy *) swig_pg_malloc(sizeof(struct swig_pg_proxy));
+    new_proxy->pgtype = swig_type;
     new_proxy->type = type;
     new_proxy->object = ptr;
     new_proxy->own = owner & SWIG_POINTER_OWN;
     if (new_proxy->own) {
-      scheme_add_finalizer(new_proxy, mz_free_swig, NULL);
+      swig_pg_add_finalizer(new_proxy, pg_free_swig, NULL);
     }
-    return (Scheme_Object *) new_proxy;
+    return (swig_pg_value ) new_proxy;
   } else {
-    return scheme_make_null();
+    return swig_pg_make_null();
   }
 }
 
 static int
-SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, int flags) {
+SWIG_PG_ConvertPtr(swig_pg_value s, void **result, swig_type_info *type, int flags) {
   swig_cast_info *cast;
   int ret = SWIG_ERROR;
 
-  if (SCHEME_NULLP(s)) {
+  if (SWIG_PG_NULLP(s)) {
     *result = NULL;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
-  } else if (SCHEME_TYPE(s) == swig_type) {
-    struct swig_mz_proxy *proxy = (struct swig_mz_proxy *) s;
+  } else if (SWIG_PG_TYPE(s) == swig_type) {
+    struct swig_pg_proxy *proxy = (struct swig_pg_proxy *) s;
 
     if ((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE && !proxy->own) {
       return SWIG_ERROR_RELEASE_NOT_OWNED;
@@ -191,7 +165,7 @@ SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, 
     }
 
     if (flags & SWIG_POINTER_DISOWN) {
-      scheme_subtract_finalizer(proxy, mz_free_swig, NULL);
+      swig_pg_subtract_finalizer(proxy, pg_free_swig, NULL);
       proxy->own = 0;
     }
     if (flags & SWIG_POINTER_CLEAR) {
@@ -202,58 +176,48 @@ SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, 
 }
 
 static SWIGINLINE void *
-SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *type, 
+SWIG_PG_MustGetPtr(swig_pg_value s, swig_type_info *type,
                          int argnum, int flags, const char *func_name,
-                         int argc, Scheme_Object **argv) {
+                         int argc, swig_pg_value *argv) {
   void *result;
-  if (SWIG_MzScheme_ConvertPtr(s, &result, type, flags)) {
-    scheme_wrong_type(func_name, type->str ? type->str : "void *", argnum - 1, argc, argv);
+  if (SWIG_PG_ConvertPtr(s, &result, type, flags)) {
+    swig_pg_wrong_type(func_name, type->str ? type->str : "void *", argnum - 1, argc, argv);
   }
   return result;
 }
 
 static SWIGINLINE void *
-SWIG_MzScheme_Malloc(size_t size, const char *func_name) {
-  void *p = malloc(size);
-  if (p == NULL) {
-    scheme_signal_error("swig-memory-error");
-  } else return p;
+swig_pg_malloc_(size_t size, const char *func_name) {
+  void *p = swig_pg_malloc(size);
+  if (p == NULL)
+    _swig_pg_signal_error("SWIG : memory error : %s", func_name);
+  return p;
 }
 
-static Scheme_Object *
-SWIG_MzScheme_PackageValues(int num, Scheme_Object **values) {
-    /* ignore first value if void */
-    if (num > 0 && SCHEME_VOIDP(values[0]))
-	num--, values++;
-    if (num == 0) return scheme_void;
-    else if (num == 1) return values[0];
-    else return scheme_values(num, values);
-}
-
-#ifndef scheme_make_inspector
-#define scheme_make_inspector(x,y) \
-        _scheme_apply(scheme_builtin_value("make-inspector"), x, y)
+#ifndef swig_pg_make_inspector
+#define swig_pg_make_inspector(x,y) \
+        _swig_pg_apply(swig_pg_builtin_value("make-inspector"), x, y)
 #endif
 
 /* Function to create a new struct. */
-static Scheme_Object *
-SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename, 
+static swig_pg_value
+SWIG_PG_new_swig_pg_struct (SWIG_PG_Env* env, const char* basename,
 				 int num_fields, char** field_names)
 {
-    Scheme_Object *new_type;
+    swig_pg_value new_type;
     int count_out, i;
-    Scheme_Object **struct_names;
-    Scheme_Object **vals;
-    Scheme_Object **a = (Scheme_Object**) \
-        scheme_malloc(num_fields*sizeof(Scheme_Object*));
-    
+    swig_pg_value *struct_names;
+    swig_pg_value *vals;
+    swig_pg_value *a = (swig_pg_value *) \
+        swig_pg_malloc(num_fields*sizeof(swig_pg_value ));
+
     for (i=0; i<num_fields; ++i) {
-        a[i] = (Scheme_Object*) scheme_intern_symbol(field_names[i]);
+        a[i] = (swig_pg_value ) swig_pg_intern_symbol(field_names[i]);
     }
 
-    new_type = scheme_make_struct_type(scheme_intern_symbol(basename),
+    new_type = swig_pg_make_struct_type(swig_pg_intern_symbol(basename),
                                        NULL /*super_type*/,
-                                       scheme_make_inspector(0, NULL),
+                                       swig_pg_make_inspector(0, NULL),
                                        num_fields,
                                        0 /* auto_fields */,
                                        NULL /* auto_val */,
@@ -262,13 +226,13 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
 				       ,NULL /* Guard */
 #endif
 				       );
-    struct_names = scheme_make_struct_names(scheme_intern_symbol(basename),
-                                            scheme_build_list(num_fields,a),
+    struct_names = swig_pg_make_struct_names(swig_pg_intern_symbol(basename),
+                                            swig_pg_build_list(num_fields,a),
                                             0 /*flags*/, &count_out);
-    vals = scheme_make_struct_values(new_type, struct_names, count_out, 0);
+    vals = swig_pg_make_struct_values(new_type, struct_names, count_out, 0);
 
     for (i = 0; i < count_out; i++)
-        scheme_add_global_symbol(struct_names[i], vals[i],env);
+        swig_pg_add_global_symbol(struct_names[i], vals[i],env);
 
     return new_type;
 }
@@ -283,21 +247,21 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
 #include <dlfcn.h>
 #endif
 
-  static char **mz_dlopen_libraries=NULL;
-  static void **mz_libraries=NULL;
-  static char **mz_dynload_libpaths=NULL;
+  static char **pg_dlopen_libraries=NULL;
+  static void **pg_libraries=NULL;
+  static char **pg_dynload_libpaths=NULL;
 
-  static void mz_set_dlopen_libraries(const char *_libs)
+  static void pg_set_dlopen_libraries(const char *_libs)
   {
     int   i,k,n;
-    int   mz_dynload_debug=(1==0);
+    int   pg_dynload_debug=(1==0);
     char *extra_paths[1000];
     char *EP;
-    
+
     {
       char *dbg=getenv("MZ_DYNLOAD_DEBUG");
       if (dbg!=NULL) {
-	mz_dynload_debug=atoi(dbg);
+	pg_dynload_debug=atoi(dbg);
       }
     }
 
@@ -324,28 +288,28 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
       extra_paths[k]=NULL;
       k+=1;
 
-      if (mz_dynload_debug) {
-	fprintf(stderr,"SWIG:mzscheme:MZ_DYNLOAD_LIBPATH=%s\n",(ep==NULL) ? "(null)" : ep);
-	fprintf(stderr,"SWIG:mzscheme:extra_paths[%d]\n",k-1);
+      if (pg_dynload_debug) {
+	fprintf(stderr,"SWIG:pg:MZ_DYNLOAD_LIBPATH=%s\n",(ep==NULL) ? "(null)" : ep);
+	fprintf(stderr,"SWIG:pg:extra_paths[%d]\n",k-1);
 	for(i=0;i<k-1;i++) {
-	  fprintf(stderr,"SWIG:mzscheme:extra_paths[%d]=%s\n",i,extra_paths[i]);
+	  fprintf(stderr,"SWIG:pg:extra_paths[%d]=%s\n",i,extra_paths[i]);
 	}
       }
 
-      mz_dynload_libpaths=(char **) malloc(sizeof(char *)*k);
+      pg_dynload_libpaths=(char **) malloc(sizeof(char *)*k);
       for(i=0;i<k;i++) {
 	if (extra_paths[i]!=NULL) {
-	  mz_dynload_libpaths[i]=strdup(extra_paths[i]);
+	  pg_dynload_libpaths[i]=strdup(extra_paths[i]);
 	}
 	else {
-	  mz_dynload_libpaths[i]=NULL;
+	  pg_dynload_libpaths[i]=NULL;
 	}
       }
 
-      if (mz_dynload_debug) {
+      if (pg_dynload_debug) {
 	int i;
 	for(i=0;extra_paths[i]!=NULL;i++) {
-	  fprintf(stderr,"SWIG:mzscheme:%s\n",extra_paths[i]);
+	  fprintf(stderr,"SWIG:postgresql:%s\n",extra_paths[i]);
 	}
       }
     }
@@ -358,76 +322,76 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
       char *libs=(char *) malloc((strlen(_libs)+1)*sizeof(char));
       strcpy(libs,_libs);
 #endif
-      
+
       for(i=0,n=strlen(libs),k=0;i<n;i++) {
 	if (libs[i]==',') { k+=1; }
       }
       k+=1;
-      mz_dlopen_libraries=(char **) malloc(sizeof(char *)*(k+1));
-      mz_dlopen_libraries[0]=libs;
+      pg_dlopen_libraries=(char **) malloc(sizeof(char *)*(k+1));
+      pg_dlopen_libraries[0]=libs;
       for(i=0,k=1,n=strlen(libs);i<n;i++) {
 	if (libs[i]==',') {
 	  libs[i]='\0';
-	  mz_dlopen_libraries[k++]=&libs[i+1];
+	  pg_dlopen_libraries[k++]=&libs[i+1];
 	  i+=1;
 	}
       }
-      
-      if (mz_dynload_debug) {
+
+      if (pg_dynload_debug) {
 	fprintf(stderr,"k=%d\n",k);
       }
-      mz_dlopen_libraries[k]=NULL;
-      
+      pg_dlopen_libraries[k]=NULL;
+
       free(EP);
     }
   }
 
-  static void *mz_load_function(char *function)
+  static void *pg_load_function(char *function)
   {
-    int mz_dynload_debug=(1==0);
-    
+    int pg_dynload_debug=(1==0);
+
     {
       char *dbg=getenv("MZ_DYNLOAD_DEBUG");
       if (dbg!=NULL) {
-	mz_dynload_debug=atoi(dbg);
+	pg_dynload_debug=atoi(dbg);
       }
     }
 
-    if (mz_dlopen_libraries==NULL) {
+    if (pg_dlopen_libraries==NULL) {
       return NULL;
     }
     else {
-      if (mz_libraries==NULL) {
+      if (pg_libraries==NULL) {
         int i,n;
-        for(n=0;mz_dlopen_libraries[n]!=NULL;n++);
-	if (mz_dynload_debug) {
-	  fprintf(stderr,"SWIG:mzscheme:n=%d\n",n);
+        for(n=0;pg_dlopen_libraries[n]!=NULL;n++);
+	if (pg_dynload_debug) {
+	  fprintf(stderr,"SWIG:postgresql:n=%d\n",n);
 	}
-        mz_libraries=(void **) malloc(sizeof(void*)*n);
-        for(i=0;i<n;i++) { 
-	  if (mz_dynload_debug) {
-	   fprintf(stderr,"SWIG:mzscheme:loading %s\n",mz_dlopen_libraries[i]);
+        pg_libraries=(void **) malloc(sizeof(void*)*n);
+        for(i=0;i<n;i++) {
+	  if (pg_dynload_debug) {
+	   fprintf(stderr,"SWIG:postgresql:loading %s\n",pg_dlopen_libraries[i]);
 	  }
 #ifdef __OS_WIN32
-	  mz_libraries[i]=(void *) LoadLibrary(mz_dlopen_libraries[i]); 
+	  pg_libraries[i]=(void *) LoadLibrary(pg_dlopen_libraries[i]);
 #else
-	  mz_libraries[i]=(void *) dlopen(mz_dlopen_libraries[i],RTLD_LAZY); 
+	  pg_libraries[i]=(void *) dlopen(pg_dlopen_libraries[i],RTLD_LAZY);
 #endif
-	  if (mz_libraries[i]==NULL) {
+	  if (pg_libraries[i]==NULL) {
 	    int k;
 	    char *libp;
-	    for(k=0;mz_dynload_libpaths[k]!=NULL && mz_libraries[i]==NULL;k++) {
-	      int L=strlen(mz_dynload_libpaths[k])+strlen("\\")+strlen(mz_dlopen_libraries[i])+1;
+	    for(k=0;pg_dynload_libpaths[k]!=NULL && pg_libraries[i]==NULL;k++) {
+	      int L=strlen(pg_dynload_libpaths[k])+strlen("\\")+strlen(pg_dlopen_libraries[i])+1;
 	      libp=(char *) malloc(L*sizeof(char));
 #ifdef __OS_WIN32
-	      sprintf(libp,"%s\\%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
-	      mz_libraries[i]=(void *) LoadLibrary(libp); 
+	      sprintf(libp,"%s\\%s",pg_dynload_libpaths[k],pg_dlopen_libraries[i]);
+	      pg_libraries[i]=(void *) LoadLibrary(libp);
 #else
-	      sprintf(libp,"%s/%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
-	      mz_libraries[i]=(void *) dlopen(libp,RTLD_LAZY); 
+	      sprintf(libp,"%s/%s",pg_dynload_libpaths[k],pg_dlopen_libraries[i]);
+	      pg_libraries[i]=(void *) dlopen(libp,RTLD_LAZY);
 #endif
-	      if (mz_dynload_debug) {
-		fprintf(stderr,"SWIG:mzscheme:trying %s --> %p\n",libp,mz_libraries[i]);
+	      if (pg_dynload_debug) {
+		fprintf(stderr,"SWIG:postgresql:trying %s --> %p\n",libp,pg_libraries[i]);
 	      }
 	      free(libp);
 	    }
@@ -438,18 +402,18 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
         int i;
         void *func=NULL;
 
-        for(i=0;mz_dlopen_libraries[i]!=NULL && func==NULL;i++) {
-          if (mz_libraries[i]!=NULL) {
+        for(i=0;pg_dlopen_libraries[i]!=NULL && func==NULL;i++) {
+          if (pg_libraries[i]!=NULL) {
 #ifdef __OS_WIN32
-            func=GetProcAddress(mz_libraries[i],function);
+            func=GetProcAddress(pg_libraries[i],function);
 #else
-            func=dlsym(mz_libraries[i],function);
+            func=dlsym(pg_libraries[i],function);
 #endif
           }
-	  if (mz_dynload_debug) {
+	  if (pg_dynload_debug) {
 	    fprintf(stderr,
-		    "SWIG:mzscheme:library:%s;dlopen=%p,function=%s,func=%p\n",
-		    mz_dlopen_libraries[i],mz_libraries[i],function,func
+		    "SWIG:postgresql:library:%s;dlopen=%p,function=%s,func=%p\n",
+		    pg_dlopen_libraries[i],pg_libraries[i],function,func
 		    );
 	  }
         }
@@ -462,23 +426,23 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
 /* The interpreter will store a pointer to this structure in a global
    variable called swig-runtime-data-type-pointer.  The instance of this
    struct is only used if no other module has yet been loaded */
-struct swig_mzscheme_runtime_data {
+struct swig_pg_runtime_data {
   swig_module_info *module_head;
-  Scheme_Type type;
+  SWIG_PG_Type type;
 };
-static struct swig_mzscheme_runtime_data swig_mzscheme_runtime_data;
+static struct swig_pg_runtime_data swig_pg_runtime_data;
 
 
 static swig_module_info *
-SWIG_MzScheme_GetModule(Scheme_Env *env) {
-  Scheme_Object *pointer, *symbol;
-  struct swig_mzscheme_runtime_data *data;
+SWIG_PG_GetModule(SWIG_PG_Env *env) {
+  swig_pg_value pointer, *symbol;
+  struct swig_pg_runtime_data *data;
 
   /* first check if pointer already created */
-  symbol = scheme_intern_symbol("swig-runtime-data-type-pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
-  pointer = scheme_lookup_global(symbol, env);
-  if (pointer && SCHEME_CPTRP(pointer)) {
-      data = (struct swig_mzscheme_runtime_data *) SCHEME_CPTR_VAL(pointer);
+  symbol = swig_pg_intern_symbol("swig-runtime-data-type-pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
+  pointer = swig_pg_lookup_global(symbol, env);
+  if (pointer && SWIG_PG_CPTRP(pointer)) {
+      data = (struct swig_pg_runtime_data *) SWIG_PG_CPTR_VAL(pointer);
       swig_type = data->type;
       return data->module_head;
   } else {
@@ -487,31 +451,31 @@ SWIG_MzScheme_GetModule(Scheme_Env *env) {
 }
 
 static void
-SWIG_MzScheme_SetModule(Scheme_Env *env, swig_module_info *module) {
-  Scheme_Object *pointer, *symbol;
-  struct swig_mzscheme_runtime_data *data;
+SWIG_PG_SetModule(SWIG_PG_Env *env, swig_module_info *module) {
+  swig_pg_value pointer, *symbol;
+  struct swig_pg_runtime_data *data;
 
   /* first check if pointer already created */
-  symbol = scheme_intern_symbol("swig-runtime-data-type-pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
-  pointer = scheme_lookup_global(symbol, env);
-  if (pointer && SCHEME_CPTRP(pointer)) {
-    data = (struct swig_mzscheme_runtime_data *) SCHEME_CPTR_VAL(pointer);
+  symbol = swig_pg_intern_symbol("swig-runtime-data-type-pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
+  pointer = swig_pg_lookup_global(symbol, env);
+  if (pointer && SWIG_PG_CPTRP(pointer)) {
+    data = (struct swig_pg_runtime_data *) SWIG_PG_CPTR_VAL(pointer);
     swig_type = data->type;
     data->module_head = module;
   } else {
     /* create a new type for wrapped pointer values */
-    swig_type = scheme_make_type((char *)"swig");
-    swig_mzscheme_runtime_data.module_head = module;
-    swig_mzscheme_runtime_data.type = swig_type;
-    
+    swig_type = swig_pg_make_type((char *)"swig");
+    swig_pg_runtime_data.module_head = module;
+    swig_pg_runtime_data.type = swig_type;
+
     /* create a new pointer */
 #ifndef MZSCHEME30X
-    pointer = scheme_make_cptr((void *) &swig_mzscheme_runtime_data, "swig_mzscheme_runtime_data");
+    pointer = swig_pg_make_cptr((void *) &swig_pg_runtime_data, "swig_pg_runtime_data");
 #else
-    pointer = scheme_make_cptr((void *) &swig_mzscheme_runtime_data,
-			       scheme_make_byte_string("swig_mzscheme_runtime_data"));
+    pointer = swig_pg_make_cptr((void *) &swig_pg_runtime_data,
+			       swig_pg_make_byte_string("swig_pg_runtime_data"));
 #endif
-    scheme_add_global_symbol(symbol, pointer, env);
+    swig_pg_add_global_symbol(symbol, pointer, env);
   }
 }
 

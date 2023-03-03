@@ -12,12 +12,12 @@
 #include <string>
 
 SWIGINTERNINLINE
-std::string swig_scm_to_string(Scheme_Object *x) {
-    return std::string(SCHEME_STR_VAL(x));
+std::string swig_scm_to_string(swig_pg_value x) {
+    return std::string(POSTGRESQL_STR_VAL(x));
 }
 
 SWIGINTERNINLINE
-Scheme_Object *swig_make_string(const std::string &s) {
-    return scheme_make_string(s.c_str());
+postgresql_value swig_make_string(const std::string &s) {
+    return postgresql_make_string(s.c_str());
 }
 %}

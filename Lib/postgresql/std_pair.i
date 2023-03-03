@@ -24,12 +24,12 @@ namespace std {
 
     template<class T, class U> struct pair {
         %typemap(in) pair<T,U> (std::pair<T,U>* m) {
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 T* x;
                 U* y;
-                Scheme_Object *first, *second;
-                first = scheme_car($input);
-                second = scheme_cdr($input);
+                swig_pg_value first, *second;
+                first = swig_pg_car($input);
+                second = swig_pg_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
                 $1 = std::make_pair(*x,*y);
@@ -42,12 +42,12 @@ namespace std {
                                        std::pair<T,U>* m),
                      const pair<T,U>* (std::pair<T,U> temp,
                                        std::pair<T,U>* m) {
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 T* x;
                 U* y;
-                Scheme_Object *first, *second;
-                first = scheme_car($input);
-                second = scheme_cdr($input);
+                swig_pg_value first, *second;
+                first = swig_pg_car($input);
+                second = swig_pg_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
                 temp = std::make_pair(*x,*y);
@@ -60,17 +60,17 @@ namespace std {
         %typemap(out) pair<T,U> {
             T* x = new T($1.first);
             U* y = new U($1.second);
-            Scheme_Object* first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
-            Scheme_Object* second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
-            $result = scheme_make_pair(first,second);
+            swig_pg_value first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
+            swig_pg_value second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
+            $result = swig_pg_make_pair(first,second);
         }
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native pair? */
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 T* x;
                 U* y;
-                Scheme_Object* first = scheme_car($input);
-                Scheme_Object* second = scheme_cdr($input);
+                swig_pg_value first = swig_pg_car($input);
+                swig_pg_value second = swig_pg_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
                                     $descriptor(T *), 0) != -1 &&
                     SWIG_ConvertPtr(second,(void**) &y,
@@ -92,11 +92,11 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_PAIR) const pair<T,U>&,
                                         const pair<T,U>* {
             /* native pair? */
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 T* x;
                 U* y;
-                Scheme_Object* first = scheme_car($input);
-                Scheme_Object* second = scheme_cdr($input);
+                swig_pg_value first = swig_pg_car($input);
+                swig_pg_value second = swig_pg_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
                                     $descriptor(T *), 0) != -1 &&
                     SWIG_ConvertPtr(second,(void**) &y,
@@ -134,11 +134,11 @@ namespace std {
     %define specialize_std_pair_on_first(T,CHECK,CONVERT_FROM,CONVERT_TO)
     template<class U> struct pair<T,U> {
         %typemap(in) pair<T,U> (std::pair<T,U>* m) {
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 U* y;
-                Scheme_Object *first, *second;
-                first = scheme_car($input);
-                second = scheme_cdr($input);
+                swig_pg_value first, *second;
+                first = swig_pg_car($input);
+                second = swig_pg_cdr($input);
                 if (!CHECK(first))
                     SWIG_exception(SWIG_TypeError,
                                    "pair<" #T "," #U "> expected");
@@ -153,11 +153,11 @@ namespace std {
                                        std::pair<T,U>* m),
                      const pair<T,U>* (std::pair<T,U> temp,
                                        std::pair<T,U>* m) {
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 U* y;
-                Scheme_Object *first, *second;
-                first = scheme_car($input);
-                second = scheme_cdr($input);
+                swig_pg_value first, *second;
+                first = swig_pg_car($input);
+                second = swig_pg_cdr($input);
                 if (!CHECK(first))
                     SWIG_exception(SWIG_TypeError,
                                    "pair<" #T "," #U "> expected");
@@ -171,15 +171,15 @@ namespace std {
         }
         %typemap(out) pair<T,U> {
             U* y = new U($1.second);
-            Scheme_Object* second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
-            $result = scheme_make_pair(CONVERT_TO($1.first),second);
+            swig_pg_value second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
+            $result = swig_pg_make_pair(CONVERT_TO($1.first),second);
         }
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native pair? */
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 U* y;
-                Scheme_Object* first = scheme_car($input);
-                Scheme_Object* second = scheme_cdr($input);
+                swig_pg_value first = swig_pg_car($input);
+                swig_pg_value second = swig_pg_cdr($input);
                 if (CHECK(first) &&
                     SWIG_ConvertPtr(second,(void**) &y,
                                     $descriptor(U *), 0) != -1) {
@@ -200,10 +200,10 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_PAIR) const pair<T,U>&,
                                         const pair<T,U>* {
             /* native pair? */
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 U* y;
-                Scheme_Object* first = scheme_car($input);
-                Scheme_Object* second = scheme_cdr($input);
+                swig_pg_value first = swig_pg_car($input);
+                swig_pg_value second = swig_pg_cdr($input);
                 if (CHECK(first) &&
                     SWIG_ConvertPtr(second,(void**) &y,
                                     $descriptor(U *), 0) != -1) {
@@ -235,11 +235,11 @@ namespace std {
     %define specialize_std_pair_on_second(U,CHECK,CONVERT_FROM,CONVERT_TO)
     template<class T> struct pair<T,U> {
         %typemap(in) pair<T,U> (std::pair<T,U>* m) {
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 T* x;
-                Scheme_Object *first, *second;
-                first = scheme_car($input);
-                second = scheme_cdr($input);
+                swig_pg_value first, *second;
+                first = swig_pg_car($input);
+                second = swig_pg_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError,
@@ -254,11 +254,11 @@ namespace std {
                                        std::pair<T,U>* m),
                      const pair<T,U>* (std::pair<T,U> temp,
                                        std::pair<T,U>* m) {
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 T* x;
-                Scheme_Object *first, *second;
-                first = scheme_car($input);
-                second = scheme_cdr($input);
+                swig_pg_value first, *second;
+                first = swig_pg_car($input);
+                second = swig_pg_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError,
@@ -272,15 +272,15 @@ namespace std {
         }
         %typemap(out) pair<T,U> {
             T* x = new T($1.first);
-            Scheme_Object* first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
-            $result = scheme_make_pair(first,CONVERT_TO($1.second));
+            swig_pg_value first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
+            $result = swig_pg_make_pair(first,CONVERT_TO($1.second));
         }
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native pair? */
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 T* x;
-                Scheme_Object* first = scheme_car($input);
-                Scheme_Object* second = scheme_cdr($input);
+                swig_pg_value first = swig_pg_car($input);
+                swig_pg_value second = swig_pg_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
                                     $descriptor(T *), 0) != -1 &&
                     CHECK(second)) {
@@ -301,10 +301,10 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_PAIR) const pair<T,U>&,
                                         const pair<T,U>* {
             /* native pair? */
-            if (SCHEME_PAIRP($input)) {
+            if (SWIG_PG_PAIRP($input)) {
                 T* x;
-                Scheme_Object* first = scheme_car($input);
-                Scheme_Object* second = scheme_cdr($input);
+                swig_pg_value first = swig_pg_car($input);
+                swig_pg_value second = swig_pg_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
                                     $descriptor(T *), 0) != -1 &&
                     CHECK(second)) {
@@ -337,10 +337,10 @@ namespace std {
                                         U,CHECK_U,CONVERT_U_FROM,CONVERT_U_TO)
     template<> struct pair<T,U> {
         %typemap(in) pair<T,U> (std::pair<T,U>* m) {
-            if (SCHEME_PAIRP($input)) {
-                Scheme_Object *first, *second;
-                first = scheme_car($input);
-                second = scheme_cdr($input);
+            if (SWIG_PG_PAIRP($input)) {
+                swig_pg_value first, *second;
+                first = swig_pg_car($input);
+                second = swig_pg_cdr($input);
                 if (!CHECK_T(first) || !CHECK_U(second))
                     SWIG_exception(SWIG_TypeError,
                                    "pair<" #T "," #U "> expected");
@@ -355,11 +355,11 @@ namespace std {
                                        std::pair<T,U>* m),
                      const pair<T,U>* (std::pair<T,U> temp,
                                        std::pair<T,U>* m) {
-            if (SCHEME_PAIRP($input)) {
-                Scheme_Object *first, *second;
+            if (SWIG_PG_PAIRP($input)) {
+                swig_pg_value first, *second;
             T *x;
-                first = scheme_car($input);
-                second = scheme_cdr($input);
+                first = swig_pg_car($input);
+                second = swig_pg_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK_T(first) || !CHECK_U(second))
                     SWIG_exception(SWIG_TypeError,
@@ -373,14 +373,14 @@ namespace std {
             }
         }
         %typemap(out) pair<T,U> {
-            $result = scheme_make_pair(CONVERT_T_TO($1.first),
+            $result = swig_pg_make_pair(CONVERT_T_TO($1.first),
                                        CONVERT_U_TO($1.second));
         }
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native pair? */
-            if (SCHEME_PAIRP($input)) {
-                Scheme_Object* first = scheme_car($input);
-                Scheme_Object* second = scheme_cdr($input);
+            if (SWIG_PG_PAIRP($input)) {
+                swig_pg_value first = swig_pg_car($input);
+                swig_pg_value second = swig_pg_cdr($input);
                 if (CHECK_T(first) && CHECK_U(second)) {
                         $1 = 1;
                 } else {
@@ -399,9 +399,9 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_PAIR) const pair<T,U>&,
                                         const pair<T,U>* {
             /* native pair? */
-            if (SCHEME_PAIRP($input)) {
-                Scheme_Object* first = scheme_car($input);
-                Scheme_Object* second = scheme_cdr($input);
+            if (SWIG_PG_PAIRP($input)) {
+                swig_pg_value first = swig_pg_car($input);
+                swig_pg_value second = swig_pg_cdr($input);
                 if (CHECK_T(first) && CHECK_U(second)) {
                         $1 = 1;
                 } else {
@@ -429,446 +429,446 @@ namespace std {
     %enddef
 
 
-    specialize_std_pair_on_first(bool,SCHEME_BOOLP,
-                              SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_first(int,SCHEME_INTP,
-                              SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_first(short,SCHEME_INTP,
-                              SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_first(long,SCHEME_INTP,
-                              SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_first(unsigned int,SCHEME_INTP,
-                              SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_first(unsigned short,SCHEME_INTP,
-                              SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_first(unsigned long,SCHEME_INTP,
-                              SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_first(double,SCHEME_REALP,
-                              scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_first(float,SCHEME_REALP,
-                              scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_first(std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_first(bool,SWIG_PG_BOOLP,
+                              SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_first(int,SWIG_PG_INTP,
+                              SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_first(short,SWIG_PG_INTP,
+                              SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_first(long,SWIG_PG_INTP,
+                              SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_first(unsigned int,SWIG_PG_INTP,
+                              SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_first(unsigned short,SWIG_PG_INTP,
+                              SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_first(unsigned long,SWIG_PG_INTP,
+                              SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_first(double,SWIG_PG_REALP,
+                              swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_first(float,SWIG_PG_REALP,
+                              swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_first(std::string,SWIG_PG_STRINGP,
                               swig_scm_to_string,swig_make_string);
 
-    specialize_std_pair_on_second(bool,SCHEME_BOOLP,
-                                SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_second(int,SCHEME_INTP,
-                                SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_second(short,SCHEME_INTP,
-                                SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_second(long,SCHEME_INTP,
-                                SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_second(unsigned int,SCHEME_INTP,
-                                SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_second(unsigned short,SCHEME_INTP,
-                                SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_second(unsigned long,SCHEME_INTP,
-                                SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_second(double,SCHEME_REALP,
-                                scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_second(float,SCHEME_REALP,
-                                scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_second(std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_second(bool,SWIG_PG_BOOLP,
+                                SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_second(int,SWIG_PG_INTP,
+                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_second(short,SWIG_PG_INTP,
+                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_second(long,SWIG_PG_INTP,
+                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_second(unsigned int,SWIG_PG_INTP,
+                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_second(unsigned short,SWIG_PG_INTP,
+                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_second(unsigned long,SWIG_PG_INTP,
+                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_second(double,SWIG_PG_REALP,
+                                swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_second(float,SWIG_PG_REALP,
+                                swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_second(std::string,SWIG_PG_STRINGP,
                                 swig_scm_to_string,swig_make_string);
 
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean,
-                               std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value,
-                               std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double,
-                               std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               bool,SCHEME_BOOLP,
-                               SCHEME_TRUEP,swig_make_boolean);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+                               bool,SWIG_PG_BOOLP,
+                               SWIG_PG_TRUEP,swig_make_boolean);
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+                               int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+                               short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+                               long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               unsigned int,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+                               unsigned int,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               unsigned short,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+                               unsigned short,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               unsigned long,SCHEME_INTP,
-                               SCHEME_INT_VAL,scheme_make_integer_value);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+                               unsigned long,SWIG_PG_INTP,
+                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               double,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+                               double,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               float,SCHEME_REALP,
-                               scheme_real_to_double,scheme_make_double);
-    specialize_std_pair_on_both(std::string,SCHEME_STRINGP,
+                               float,SWIG_PG_REALP,
+                               swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_pair_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               std::string,SCHEME_STRINGP,
+                               std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
 }

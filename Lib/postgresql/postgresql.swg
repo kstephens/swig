@@ -1,14 +1,14 @@
 /* -----------------------------------------------------------------------------
- * mzscheme.swg
+ * postgresql.swg
  *
- * SWIG Configuration File for MzScheme.
+ * SWIG Configuration File for PostgreSQL.
  * This file is parsed by SWIG before reading any other interface file.
  * ----------------------------------------------------------------------------- */
 
 /* Include headers */
 %runtime "swigrun.swg"     // Common C API type-checking code
 %runtime "swigerrors.swg"  // SWIG errors
-%runtime "mzrun.swg"
+%runtime "postgresql_run.swg"
 
 %define SWIG_APPEND_VALUE(value)
    values[lenv++] = value
@@ -49,8 +49,8 @@
 %insert(init) "swiginit.swg"
 
 %init %{
-Scheme_Object *scheme_reload(Scheme_Env *env) {
-  Scheme_Env *menv = SWIG_MZSCHEME_CREATE_MENV(env);
+swig_pg_value swig_postgres_reload(SWIG_PG_Env* env) {
+  SWIG_PG_Env *menv = SWIG_PG_CREATE_MENV(env);
 
   SWIG_InitializeModule((void *) env);
 %}

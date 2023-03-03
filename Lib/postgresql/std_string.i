@@ -29,15 +29,15 @@ namespace std {
     %typemap(typecheck) const string & = char *;
 
     %typemap(in) string {
-        if (SCHEME_STRINGP($input))
-            $1.assign(SCHEME_STR_VAL($input));
+        if (SWIG_PG_STRINGP($input))
+            $1.assign(SWIG_PG_STR_VAL($input));
         else
             SWIG_exception(SWIG_TypeError, "string expected");
     }
 
     %typemap(in) const string & ($*1_ltype temp) {
-        if (SCHEME_STRINGP($input)) {
-            temp.assign(SCHEME_STR_VAL($input));
+        if (SWIG_PG_STRINGP($input)) {
+            temp.assign(SWIG_PG_STR_VAL($input));
             $1 = &temp;
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
@@ -45,19 +45,19 @@ namespace std {
     }
 
     %typemap(out) string {
-        $result = scheme_make_string($1.c_str());
+        $result = swig_pg_make_string($1.c_str());
     }
 
     %typemap(out) const string & {
-        $result = scheme_make_string($1->c_str());
+        $result = swig_pg_make_string($1->c_str());
     }
 
     %typemap(throws) string {
-      scheme_signal_error("%s: %s", FUNC_NAME, $1.c_str());
+      swig_pg_signal_error("%s: %s", FUNC_NAME, $1.c_str());
     }
 
     %typemap(throws) const string & {
-      scheme_signal_error("%s: %s", FUNC_NAME, $1.c_str());
+      swig_pg_signal_error("%s: %s", FUNC_NAME, $1.c_str());
     }
 }
 

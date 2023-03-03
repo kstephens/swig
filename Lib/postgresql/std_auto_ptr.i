@@ -13,7 +13,7 @@
   res = SWIG_ConvertPtr($input, &argp, $descriptor(TYPE *), SWIG_POINTER_RELEASE);
   if (!SWIG_IsOK(res)) {
     if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
-      scheme_signal_error(FUNC_NAME ": cannot release ownership as memory is not owned for argument $argnum of type 'TYPE *'");
+      swig_pg_signal_error(FUNC_NAME ": cannot release ownership as memory is not owned for argument $argnum of type 'TYPE *'");
     } else {
       %argument_fail(res, "TYPE *", $symname, $argnum);
     }
