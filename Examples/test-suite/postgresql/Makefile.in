@@ -1,9 +1,9 @@
 #######################################################################
-# Makefile for mzscheme test-suite
+# Makefile for postgresql test-suite
 #######################################################################
 
-LANGUAGE     = mzscheme
-MZSCHEME     = mzscheme
+LANGUAGE       = postgresql
+POSTGRESQL     = postgresql
 SCRIPTSUFFIX = _runme.scm
 
 HAVE_CXX11   = @HAVE_CXX11@
@@ -107,7 +107,7 @@ SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(MZSCHEME) -r $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(POSTGRESQL) -r $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean
@@ -115,4 +115,4 @@ run_testcase = \
 	@exit 0
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' mzscheme_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' postgresql_clean

@@ -450,6 +450,11 @@ case $host in
    *) MZSCHEME_SO=.so;;
 esac
 
+AC_SUBST(POSTGRESQL_SO)
+case $host in
+   *) POSTGRESQL_SO=.so;;
+esac
+
 AC_SUBST(LUA_SO)
 case $host in
    *-*-darwin*) LUA_SO=.so;;
@@ -1551,6 +1556,17 @@ else
   fi
 fi
 AC_SUBST(MZDYNOBJ)
+
+#----------------------------------------------------------------
+# Look for PostgresSQL
+#----------------------------------------------------------------
+
+AC_ARG_WITH(postgresql, AS_HELP_STRING([--without-postgresql], [Disable PostgresSQL])
+AS_HELP_STRING([--with-postgresql=path], [Set location of PostgresSQL executable]),[ POSTGRESQLBIN="$withval"], [POSTGRESQLBIN="$alllang_default"])
+AC_ARG_WITH(mzc, AS_HELP_STRING([--with-postgresql=path], [Set location of PostgresSQL's XXX]), [ POSTGRESQLBIN="$withval"], [POSTGRESQLBIN=])
+POSTGRESQLDYNOBJ=""
+AC_SUBST(POSTGRESQLDYNOBJ)
+
 
 #----------------------------------------------------------------
 # Look for OCaml
@@ -2682,6 +2698,13 @@ fi
 AC_SUBST(SKIP_MZSCHEME)
 
 
+SKIP_POSTGRESQL=
+if true test -z "$MZC" || test -z "$MZDYNOBJ" ; then # ??? TODO: fix this
+    SKIP_POSTGRESQL="1"
+fi
+AC_SUBST(SKIP_POSTGRESQL)
+
+
 SKIP_OCAML=
 if test -z "$OCAMLC" || test -z "$CAMLP4" ; then
     SKIP_OCAML="1"
@@ -2849,6 +2872,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/javascript/Makefile
     Examples/test-suite/lua/Makefile
     Examples/test-suite/mzscheme/Makefile
+    Examples/test-suite/postgresql/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
@@ -2911,6 +2935,7 @@ test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
 test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
+test -n "$SKIP_POSTGRESQL"	|| langs="${langs}postgresql "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
