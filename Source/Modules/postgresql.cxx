@@ -20,6 +20,7 @@ PostgreSQL Options (available with -postgresql)\n\
      -dynamic-load <lib>,[lib,...] - Do not link with these libraries, dynamic load them\n\
      -noinit                       - Do not emit module initialization code\n\
      -prefix <name>                - Set a prefix <name> to be prepended to all names\n\
+     -module-version <version>     - Set the version of the module\n\
 ";
 
 static String *fieldnames_tab = 0;
@@ -33,6 +34,7 @@ static bool declaremodule = false;
 static bool noinit = false;
 static String *load_libraries = NULL;
 static String *module = 0;
+static String *module_version = 0;
 static const char *postgresql_path = "postgresql";
 static String *init_func_def = 0;
 
@@ -75,6 +77,15 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
+  } else if (strcmp(argv[i], "-module-version") == 0) {
+    if (argv[i + 1]) {
+      module_version = NewString(argv[i + 1]);
+      Swig_mark_arg(i);
+      Swig_mark_arg(i + 1);
+      i++;
+    } else {
+      Swig_arg_error();
+    }
 	} else if (strcmp(argv[i], "-declaremodule") == 0) {
 	  declaremodule = true;
 	  Swig_mark_arg(i);
@@ -93,6 +104,10 @@ public:
 	  }
 	}
       }
+    }
+
+    if ( ! module_version ) {
+      module_version = NewString("0.0.1");
     }
 
     // If a prefix has been specified make sure it ends in a '_' (not actually used!)
@@ -155,8 +170,12 @@ public:
     Swig_obligatory_macros(f_runtime, "POSTGRESQL");
 
     module = Getattr(n, "name");
+    // version = Getattr(n, "version");
 
-    Printf(f_runtime, "\nstatic const char * swig_pg_module_name_cstr = \"%s\";\n\n", module);
+    Printf(f_runtime, "\n");
+    Printf(f_runtime, "static const char * swig_pg_module_name_cstr    = \"%s\";\n", module);
+    Printf(f_runtime, "static const char * swig_pg_module_version_cstr = \"%s\";\n", module_version);
+    Printf(f_runtime, "\n");
 
     Language::top(n);
 
