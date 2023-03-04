@@ -996,7 +996,7 @@ SWIG_PG_new_swig_pg_struct (SWIG_PG_Env* env, const char* basename,
 				 int num_fields, char** field_names)
 {
     swig_pg_value new_type;
-    int count_out, i;
+    int count_out = 0, i = 0;
     swig_pg_value *struct_names;
     swig_pg_value *vals;
     swig_pg_value *a = (swig_pg_value *) \
@@ -1590,7 +1590,7 @@ SWIG_PropagateClientData(void) {
 #endif
 
 
-swig_pg_value swig_postgres_reload(SWIG_PG_Env* env) {
+static swig_pg_value swig_postgres_reload(SWIG_PG_Env* env) {
   SWIG_PG_Env *menv = SWIG_PG_CREATE_MENV(env);
   SWIG_InitializeModule((void *) env);
   
@@ -1599,10 +1599,10 @@ swig_pg_value swig_postgres_reload(SWIG_PG_Env* env) {
   
   return swig_pg_void;
 }
-swig_pg_value swig_pg_initialize(SWIG_PG_Env *env) {
+static swig_pg_value swig_pg_initialize(SWIG_PG_Env *env) {
   return swig_pg_reload(env);
 }
-swig_pg_value swig_pg_module_name(void) {
+static swig_pg_value swig_pg_module_name(void) {
   return swig_pg_make_symbol((char*)"example1_swig");
 }
 

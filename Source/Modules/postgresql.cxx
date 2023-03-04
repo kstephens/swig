@@ -191,7 +191,7 @@ public:
 	Printf(f_init, "\tswig_pg_finish_primitive_module(menv);\n");
       }
       Printf(f_init, "\treturn swig_pg_void;\n}\n");
-      Printf(f_init, "swig_pg_value swig_pg_initialize(SWIG_PG_Env *env) {\n");
+      Printf(f_init, "static swig_pg_value swig_pg_initialize(SWIG_PG_Env *env) {\n");
 
       if (load_libraries) {
 	Printf(f_init, "swig_pg_set_dlopen_libraries(\"%s\");\n", load_libraries);
@@ -200,7 +200,7 @@ public:
       Printf(f_init, "\treturn swig_pg_reload(env);\n");
       Printf(f_init, "}\n");
 
-      Printf(f_init, "swig_pg_value swig_pg_module_name(void) {\n");
+      Printf(f_init, "static swig_pg_value swig_pg_module_name(void) {\n");
       if (declaremodule) {
 	Printf(f_init, "   return swig_pg_intern_symbol((char*)\"%s\");\n", module);
       } else {
@@ -604,9 +604,7 @@ public:
 
     Printf(var_name, "_wrap_const_%s", Swig_name_mangle_string(Getattr(n, "sym:name")));
 
-    // Build the name for scheme.
     Printv(proc_name, iname, NIL);
-    Replaceall(proc_name, "_", "-");
 
     if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
@@ -618,6 +616,7 @@ public:
     if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 1)) {
       temp = Copy(rvalue);
       Clear(rvalue);
+      // !!!: DOES THIS QUOTE THE STRING CORRECTLY?
       Printv(rvalue, "\"", temp, "\"", NIL);
     }
     if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 0)) {
@@ -635,8 +634,10 @@ public:
       Printf(f_header, "static %s = ", SwigType_lstr(type, var_name));
       bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
       if ((SwigType_type(type) == T_STRING)) {
+      // !!!: DOES THIS QUOTE THE STRING CORRECTLY?
 	Printf(f_header, "\"%s\";\n", value);
       } else if (SwigType_type(type) == T_CHAR && !is_enum_item) {
+      // !!!: DOES THIS QUOTE THE STRING CORRECTLY?
 	Printf(f_header, "\'%s\';\n", value);
       } else {
 	Printf(f_header, "%s;\n", value);

@@ -259,7 +259,7 @@ SWIG_PG_new_swig_pg_struct (SWIG_PG_Env* env, const char* basename,
 				 int num_fields, char** field_names)
 {
     swig_pg_value new_type;
-    int count_out, i;
+    int count_out = 0, i = 0;
     swig_pg_value *struct_names;
     swig_pg_value *vals;
     swig_pg_value *a = (swig_pg_value *) \
