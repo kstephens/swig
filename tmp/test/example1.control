@@ -1,0 +1,4 @@
+# example1 extension
+comment = 'example1 extension'
+default_version = '0.0.1'
+relocatable = true

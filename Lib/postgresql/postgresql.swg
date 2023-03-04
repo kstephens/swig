@@ -51,6 +51,5 @@
 %init %{
 swig_pg_value swig_postgres_reload(SWIG_PG_Env* env) {
   SWIG_PG_Env *menv = SWIG_PG_CREATE_MENV(env);
-
   SWIG_InitializeModule((void *) env);
 %}

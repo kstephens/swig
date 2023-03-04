@@ -28,6 +28,50 @@ extern "C" {
 
 PG_MODULE_MAGIC;
 
+/* !!! : PLACEHOLDERS */
+#define swig_pg_UNIMPLEMENTED swig_pg_void
+#define swig_pg_UNUSED ((void) 0)
+
+#define SWIG_PG_NULLP(X) 0
+#define swig_pg_builtin_value(X) swig_pg_UNIMPLEMENTED
+#define swig_pg_add_global_symbol(...) swig_pg_UNIMPLEMENTED
+#define swig_pg_add_global(...) swig_pg_UNUSED
+#define swig_pg_lookup_global(...) swig_pg_UNIMPLEMENTED
+#define swig_pg_subtract_finalizer(...) swig_pg_UNIMPLEMENTED
+#define swig_pg_make_null(...) swig_pg_UNIMPLEMENTED
+#define swig_pg_add_finalizer(...) swig_pg_UNUSED
+#define swig_pg_make_prim_w_arity(...) swig_pg_UNIMPLEMENTED
+#define SWIG_PG_CPTR_VAL(X) NULL
+#define SWIG_PG_CPTRP(X) NULL
+#define swig_pg_reload(...) swig_pg_UNIMPLEMENTED
+#define swig_pg_make_cptr(...) swig_pg_UNIMPLEMENTED
+#define _swig_pg_apply(...) swig_pg_UNIMPLEMENTED
+
+#define swig_pg_intern_symbol(...) swig_pg_UNIMPLEMENTED
+#define swig_pg_make_symbol(...) swig_pg_UNIMPLEMENTED
+
+typedef struct SWIG_PG_Env {
+  void *dummy;
+} SWIG_PG_Env;
+#define SWIG_PG_CREATE_MENV(...) ((SWIG_PG_Env *) 0)
+
+typedef struct SWIG_PG_Type_s {
+  void *dummy;
+} *SWIG_PG_Type;
+#define SWIG_PG_TYPE(X) ((SWIG_PG_Type) 0)
+#define swig_pg_make_type(...) ((SWIG_PG_Type) 0)
+
+#define swig_pg_make_struct_names(...) ((swig_pg_value*) 0)
+#define swig_pg_make_struct_type(...) 0
+#define swig_pg_make_struct_values(...) ((swig_pg_value*) 0)
+
+/*
+struct swig_pg_runtime_data {
+  void* type;
+  void* dummy;
+};
+*/
+
 /* Common SWIG API */
 
 #define swig_pg_void       ((Datum) 0)
@@ -48,17 +92,23 @@ static void _swig_pg_signal_error(const char *fmt, ...) {
   // ??? : does PG have exception processing?
 }
 
-static void _swig_pg_wrong_type(const char* func_name, const char *msg, int argnum, int argc, void** argv) {
+static void _swig_pg_wrong_type(const char* func_name, const char *msg, int argnum, int argc, swig_pg_value* argv) {
   char str[1024];
   snprintf(str, sizeof(str) - 1, "%s : %s : argnum %d", func_name, msg, argnum);
   _swig_pg_signal_error("%s", str);
 }
 
+#if 0
 #define swig_pg_signal_error(FMT, ...) \
-({ _swig_pg_signal_error(FMT, # __VA_ARGS__); PG_RETURN_NULL(); })
-
+({ _swig_pg_signal_error(FMT, ## __VA_ARGS__); PG_RETURN_NULL(); })
 #define swig_pg_wrong_type(FMT, ...) \
-({ _swig_pg_wrong_type(FMT, # __VA_ARGS__); PG_RETURN_NULL(); })
+({ _swig_pg_wrong_type(FMT, ## __VA_ARGS__); PG_RETURN_NULL(); })
+#else
+#define swig_pg_signal_error(FMT, ...) \
+_swig_pg_signal_error(FMT, ## __VA_ARGS__)
+#define swig_pg_wrong_type(FMT, ...) \
+_swig_pg_wrong_type(FMT, ## __VA_ARGS__)
+#endif
 
 #define SWIG_ConvertPtr(s, result, type, flags) \
   SWIG_PG_ConvertPtr(s, result, type, flags)
@@ -89,11 +139,7 @@ static void _swig_pg_wrong_type(const char* func_name, const char *msg, int argn
 #define SWIG_NewStructFromPtr(ptr,type) \
         _swig_convert_struct_##type##(ptr)
 
-#define MAXVALUES 6
 #define swig_make_boolean(b) (b ? swig_pg_true : swig_pg_false)
-
-
-typedef void *SWIG_PG_Type;
 
 struct swig_pg_proxy {
   SWIG_PG_Type pgtype;
@@ -111,7 +157,9 @@ pg_free_swig(void *p, void *data) {
     return;
   if (proxy->type) {
     if (proxy->type->clientdata && proxy->own) {
+#if 0 // !!! FIXME
       ((SWIG_PG_Prim *)proxy->type->clientdata)(1, (swig_pg_value *)&proxy);
+#endif
     }
   }
 }
@@ -435,7 +483,7 @@ static struct swig_pg_runtime_data swig_pg_runtime_data;
 
 static swig_module_info *
 SWIG_PG_GetModule(SWIG_PG_Env *env) {
-  swig_pg_value pointer, *symbol;
+  swig_pg_value pointer, symbol;
   struct swig_pg_runtime_data *data;
 
   /* first check if pointer already created */
@@ -452,7 +500,7 @@ SWIG_PG_GetModule(SWIG_PG_Env *env) {
 
 static void
 SWIG_PG_SetModule(SWIG_PG_Env *env, swig_module_info *module) {
-  swig_pg_value pointer, *symbol;
+  swig_pg_value pointer, symbol;
   struct swig_pg_runtime_data *data;
 
   /* first check if pointer already created */

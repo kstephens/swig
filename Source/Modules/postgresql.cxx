@@ -117,6 +117,11 @@ public:
 
   }
 
+  String* name_wrapper(String* name) {
+    String* result = NewStringf("%s_%s", module, name);
+    return result;
+  }
+
   /* ------------------------------------------------------------
    * top()
    * ------------------------------------------------------------ */
@@ -241,7 +246,7 @@ public:
     }
 
     // Make a wrapper name for this
-    String *wname = Swig_name_wrapper(iname);
+    String *wname = name_wrapper(iname);
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
     } else {
@@ -445,7 +450,7 @@ public:
 	/* Generate a dispatch wrapper for all overloaded functions */
 
 	Wrapper *df = NewWrapper();
-	String *dname = Swig_name_wrapper(iname);
+	String *dname = name_wrapper(iname);
 
   Printv(f->def, "PG_FUNCTION_INFO_V1(", dname, ");\n", NIL);
 	Printv(df->def, "swig_pg_value\n", dname, "(PG_FUNCTION_ARGS) {", NIL);
@@ -501,7 +506,7 @@ public:
     f = NewWrapper();
 
     // evaluation function names
-    String *var_name = Swig_name_wrapper(iname);
+    String *var_name = name_wrapper(iname);
 
     // Build the name for scheme.
     Printv(proc_name, iname, NIL);
