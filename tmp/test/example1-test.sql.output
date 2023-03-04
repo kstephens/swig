@@ -4,6 +4,12 @@ DROP EXTENSION example1;
 DROP EXTENSION
 CREATE EXTENSION example1;
 CREATE EXTENSION
+SELECT EXAMPLE1_VERSION();
+ example1_version 
+------------------
+ 1.2.3
+(1 row)
+
 DROP TABLE IF EXISTS cubics;
 DROP TABLE
 CREATE TABLE cubics (

@@ -4,6 +4,8 @@
 DROP EXTENSION example1;
 CREATE EXTENSION example1;
 
+SELECT EXAMPLE1_VERSION();
+
 DROP TABLE IF EXISTS cubics;
 CREATE TABLE cubics (
   cubics_id int,

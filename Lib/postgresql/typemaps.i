@@ -239,9 +239,9 @@ SIMPLE_MAP(double, SWIG_PG_REALP,
 
 // ??? memory mgmt?
 SIMPLE_MAP(char *, SWIG_PG_STRINGP,
-     DatumGetVarCharP, CStringGetDatum, string);
+     DatumGetVarCharP, CStringGetDatum_dup, string);
 SIMPLE_MAP(const char *, SWIG_PG_STRINGP,
-     DatumGetVarCharP, CStringGetDatum, string);
+     DatumGetVarCharP, CStringGetDatum_dup, string);
 
 /* For MzScheme 30x:  Use these typemaps if you are not going to use
    UTF8 encodings in your C code.

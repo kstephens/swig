@@ -4,7 +4,7 @@
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
 \echo Use "CREATE EXTENSION example1" to load this file. \quit
 
-CREATE FUNCTION EXAMPLE1_VERSION() RETURNS varchar
+CREATE FUNCTION EXAMPLE1_VERSION() RETURNS text
     AS '$libdir/example1', 'example1_swig_EXAMPLE1_VERSION'
     LANGUAGE C STRICT;
 

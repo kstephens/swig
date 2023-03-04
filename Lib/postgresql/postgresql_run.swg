@@ -81,6 +81,12 @@ struct swig_pg_runtime_data {
 #define swig_pg_free(X)    pfree(X)
 #define swig_pg_value      Datum
 
+// !!! : Hack
+// https://cpp.hotexamples.com/examples/-/-/PG_RETURN_CSTRING/cpp-pg_return_cstring-function-examples.html
+static swig_pg_value CStringGetDatum_dup(const char *str) {
+  return CStringGetTextDatum(pstrdup(str));
+}
+
 static void _swig_pg_signal_error(const char *fmt, ...) {
   va_list va;
   va_start(va, fmt);
