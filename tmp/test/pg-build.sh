@@ -189,7 +189,7 @@ do
   echo "  #######################################################"
   echo "  # $cmd"
   echo ""
-  "cmd-$cmd"
+  "cmd-$cmd" || exit $?
   set +xe
   echo ""
   echo "  # $cmd : DONE"

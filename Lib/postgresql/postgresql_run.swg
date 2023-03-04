@@ -13,18 +13,9 @@
 extern "C" {
 #endif
 
-/*
-#include "server/c.h"
-#include "server/utils/palloc.h"
-#include "server/fmgr.h"
-*/
-
-// See: http://big-elephants.com/2015-10/writing-postgres-extensions-part-i/
 #include "postgres.h"
-#include "c.h"
 #include "fmgr.h"
 #include "utils/builtins.h"
-
 
 PG_MODULE_MAGIC;
 
