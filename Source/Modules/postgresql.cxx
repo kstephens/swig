@@ -20,7 +20,8 @@ PostgreSQL Options (available with -postgresql)\n\
      -dynamic-load <lib>,[lib,...] - Do not link with these libraries, dynamic load them\n\
      -noinit                       - Do not emit module initialization code\n\
      -prefix <name>                - Set a prefix <name> to be prepended to all names\n\
-     -module-version <version>     - Set the version of the module\n\
+     -extension-name    <name>     - Set the name of the PG extension: default module name\n\
+     -extension-version <version>  - Set the version of the PG extension\n\
 ";
 
 static String *fieldnames_tab = 0;
@@ -34,7 +35,8 @@ static bool declaremodule = false;
 static bool noinit = false;
 static String *load_libraries = NULL;
 static String *module = 0;
-static String *module_version = 0;
+static String *extension_name = 0;
+static String *extension_version = 0;
 static const char *postgresql_path = "postgresql";
 static String *init_func_def = 0;
 
@@ -43,6 +45,9 @@ static File *f_runtime = 0;
 static File *f_header = 0;
 static File *f_wrappers = 0;
 static File *f_init = 0;
+static File *f_pg_sql = 0;
+static File *f_pg_control = 0;
+static File *f_pg_make = 0;
 
 // Used for garbage collection
 static int exporting_destructor = 0;
@@ -77,9 +82,18 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
-  } else if (strcmp(argv[i], "-module-version") == 0) {
+  } else if (strcmp(argv[i], "-extension-name") == 0) {
     if (argv[i + 1]) {
-      module_version = NewString(argv[i + 1]);
+      extension_name = NewString(argv[i + 1]);
+      Swig_mark_arg(i);
+      Swig_mark_arg(i + 1);
+      i++;
+    } else {
+      Swig_arg_error();
+    }
+  } else if (strcmp(argv[i], "-extension-version") == 0) {
+    if (argv[i + 1]) {
+      extension_version = NewString(argv[i + 1]);
       Swig_mark_arg(i);
       Swig_mark_arg(i + 1);
       i++;
@@ -106,9 +120,8 @@ public:
       }
     }
 
-    if ( ! module_version ) {
-      module_version = NewString("0.0.1");
-    }
+    if ( ! extension_name ) extension_name = module;
+    if ( ! extension_version ) extension_version = NewString("0.0.1");
 
     // If a prefix has been specified make sure it ends in a '_' (not actually used!)
     if (prefix) {
@@ -170,16 +183,27 @@ public:
     Swig_obligatory_macros(f_runtime, "POSTGRESQL");
 
     module = Getattr(n, "name");
-    // version = Getattr(n, "version");
+    if ( ! extension_name )     extension_name = module;
+    if ( ! extension_version )  extension_version = NewString("0.0.1");
+
+    String *outfile_pg_sql      = outputFileForSuffix("");
+    Printf(outfile_pg_sql,      "--%s.sql", extension_version);
+    String *outfile_pg_control  = outputFileForSuffix(".control");
+    String *outfile_pg_make     = outputFileForSuffix(".make");
+
+    f_pg_sql      = NewFile(outfile_pg_sql,     "w", SWIG_output_files());
+    f_pg_control  = NewFile(outfile_pg_control, "w", SWIG_output_files());
+    f_pg_make     = NewFile(outfile_pg_make,    "w", SWIG_output_files());
 
     Printf(f_runtime, "\n");
-    Printf(f_runtime, "static const char * swig_pg_module_name_cstr    = \"%s\";\n", module);
-    Printf(f_runtime, "static const char * swig_pg_module_version_cstr = \"%s\";\n", module_version);
+    Printf(f_runtime, "static const char * swig_pg_extension_name_cstr    = \"%s\";\n", extension_name);
+    Printf(f_runtime, "static const char * swig_pg_extension_version_cstr = \"%s\";\n", extension_version);
     Printf(f_runtime, "\n");
 
     Language::top(n);
 
     SwigType_emit_type_table(f_runtime, f_wrappers);
+
     if (!noinit) {
       if (declaremodule) {
 	Printf(f_init, "#define SWIG_POSTGRESQL_CREATE_MENV(env) swig_pg_primitive_module(swig_pg_intern_symbol(\"%s\"), env)\n", module);
@@ -209,17 +233,71 @@ public:
       Printf(f_init, "}\n");
     }
 
+    create_pg_control(n);
+    create_pg_make(n);
+
     /* Close all of the files */
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
     Dump(f_wrappers, f_begin);
     Wrapper_pretty_print(f_init, f_begin);
+
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_runtime);
     Delete(f_begin);
+    Delete(f_pg_sql);
+    Delete(f_pg_control);
+    Delete(f_pg_make);
     return SWIG_OK;
+  }
+
+  String *outputFileForSuffix(const char *suffix) {
+    return NewStringf("%s%s%s", SWIG_output_directory(), extension_name, suffix);
+  }
+
+  /* ------------------------------------------------------------
+   * Generate control and make files for the module:
+   */
+
+  int create_pg_control(Node *n) {
+    String* tmpl = NewString(
+      "########################################################\n"
+      "# @extension_name@.control:\n"
+      "\n"
+      "comment           = '@extension_name@ extension'\n"
+      "default_version   = '@extension_version@'\n"
+      "relocatable       = true\n"
+      "\n"
+      "########################################################\n"
+      "\n");
+    Replaceall(tmpl, "@extension_name@", extension_name);
+    Replaceall(tmpl, "@extension_version@", extension_version);
+    Printv(f_pg_control, tmpl, NIL);
+    return 0;
+  }
+
+  int create_pg_make(Node *n) {
+    String* tmpl = NewString(
+      "########################################################\n"
+      "# @extension_name@.make:\n"
+      "\n"
+      "EXTENSION   = @extension_name@\n"
+      "DATA        = @extension_name@--@extension_version@.sql\n"
+      "# REGRESS   = @extension_name@_test\n"
+      "MODULES     = @extension_name@\n"
+      "PG_CFLAGS  += -Isrc\n"
+      "PG_CONFIG   = pg_config\n"
+      "PGXS       := $(shell $(PG_CONFIG) --pgxs)\n"
+      "include $(PGXS)\n"
+      "\n"
+      "########################################################\n"
+      "\n");
+    Replaceall(tmpl, "@extension_name@", extension_name);
+    Replaceall(tmpl, "@extension_version@", extension_version);
+    Printv(f_pg_make, tmpl, NIL);
+    return 0;
   }
 
   /* ------------------------------------------------------------
@@ -236,6 +314,48 @@ public:
   int
    is_a_pointer(SwigType *t) {
     return SwigType_ispointer(SwigType_typedef_resolve_all(t));
+  }
+
+
+  /* ------------------------------------------------------------
+   * Postgres: CREATE FUNCTION declaration.
+   * ------------------------------------------------------------ */
+
+  int functionSql(Node *n, ParmList *l) {
+    char *iname = GetChar(n, "sym:name");
+    SwigType *d = Getattr(n, "type");
+    String* rtn_pg_type;
+
+    rtn_pg_type = Swig_typemap_lookup("pg_type", n, Swig_cresult_name(), 0);
+
+    String *pg_func = Getattr(n, "wrap:pg_func");
+    String *pg_name = Getattr(n, "wrap:pg_name");
+    String *extension_dir = NewString("");
+    Printv(extension_dir, "$libdir/", module, NIL);
+
+    Printf(f_pg_sql, "CREATE FUNCTION %s (", pg_name, NIL);
+    if ( l )  {
+      Parm *p;
+      int i = 0;
+
+      Swig_typemap_attach_parms("pg_type", l, 0);
+      for ( p = l; p; i++) {
+        String   *pname = Getattr(p, "name");
+        SwigType *pt =  Getattr(p, "type");
+        String   *pg_type = Getattr(p, "tmap:pg_type");
+        if ( i > 0 )
+          Printf(f_pg_sql, ",");
+        Printf(f_pg_sql, "\n    %s_ %s", pname, pg_type);
+      	p = Getattr(p, "tmap:in:next");
+      }
+      Printf(f_pg_sql, "\n");
+    }
+    Printf(f_pg_sql, "  )\n");
+    Printf(f_pg_sql, "  RETURNS %s\n", rtn_pg_type, NIL);
+    Printf(f_pg_sql, "  AS '%s', '%s'\n", extension_dir, pg_func, NIL);
+    Printf(f_pg_sql, "  LANGUAGE C STRICT;\n\n", NIL);
+
+    return 0;
   }
 
   virtual int functionWrapper(Node *n) {
@@ -278,10 +398,11 @@ public:
       Append(wname, overname);
     }
     Setattr(n, "wrap:name", wname);
+    Setattr(n, "wrap:pg_name", iname);
+    Setattr(n, "wrap:pg_func", wname);
 
-    // Build the name for Scheme.
+    // Build the name of the function:
     Printv(proc_name, iname, NIL);
-    // Replaceall(proc_name, "_", "-");
 
     // writing the function wrapper function
     Printv(f->def, "PG_FUNCTION_INFO_V1(", wname, ");\n", NIL);
@@ -485,6 +606,8 @@ public:
       }
     }
 
+    functionSql(n, l);
+
     Delete(proc_name);
     Delete(target);
     Delete(arg);
@@ -506,8 +629,8 @@ public:
    * value.
    * ------------------------------------------------------------ */
 
-  virtual int variableWrapper(Node *n) {
 
+  virtual int variableWrapper(Node *n) {
     char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
     SwigType *t = Getattr(n, "type");
@@ -527,10 +650,10 @@ public:
     // evaluation function names
     String *var_name = name_wrapper(iname);
 
-    // Build the name for scheme.
     Printv(proc_name, iname, NIL);
-    Replaceall(proc_name, "_", "-");
     Setattr(n, "wrap:name", proc_name);
+    Setattr(n, "wrap:pg_name", iname);
+    Setattr(n, "wrap:pg_func", var_name);
 
     if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
       Printf(f->def, "PG_FUNCTION_INFO_V1(%s);\n", var_name);
@@ -540,7 +663,7 @@ public:
       Wrapper_add_local(f, "swig_result", "swig_pg_value swig_result");
 
       if (!GetFlag(n, "feature:immutable")) {
-	/* Check for a setting of the variable value */
+      	/* Check for a setting of the variable value */
 	Printf(f->code, "if (argc) {\n");
 	if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
 	  Replaceall(tm, "$input", "argv[0]");
@@ -570,11 +693,14 @@ public:
       // Now add symbol to the POSTGRESQL interpreter
 
       Printv(init_func_def,
-	     "swig_pg_add_global(\"", proc_name, "\", swig_pg_make_prim_w_arity(", var_name, ", \"", proc_name, "\", ", "0", ", ", "1", "), menv);\n", NIL);
+      "swig_pg_add_global(\"", proc_name, "\", swig_pg_make_prim_w_arity(", var_name, ", \"", proc_name, "\", ", "0", ", ", "1", "), menv);\n", NIL);
 
     } else {
       Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number, "Unsupported variable type %s (ignored).\n", SwigType_str(t, 0));
     }
+
+    functionSql(n, 0);
+
     Delete(var_name);
     Delete(proc_name);
     Delete(argnum);
@@ -770,40 +896,6 @@ public:
     return SWIG_OK;
   }
 
-
-  /* ------------------------------------------------------------
-   * validIdentifier()
-   * ------------------------------------------------------------ */
-
-  // !!! : FIXME
-  virtual int validIdentifier(String *s) {
-    char *c = Char(s);
-    /* Check whether we have an R5RS identifier. */
-    /* <identifier> --> <initial> <subsequent>* | <peculiar identifier> */
-    /* <initial> --> <letter> | <special initial> */
-    if (!(isalpha(*c) || (*c == '!') || (*c == '$') || (*c == '%')
-	  || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
-	  || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
-	  || (*c == '^') || (*c == '_') || (*c == '~'))) {
-      /* <peculiar identifier> --> + | - | ... */
-      if ((strcmp(c, "+") == 0)
-	  || strcmp(c, "-") == 0 || strcmp(c, "...") == 0)
-	return 1;
-      else
-	return 0;
-    }
-    /* <subsequent> --> <initial> | <digit> | <special subsequent> */
-    while (*c) {
-      if (!(isalnum(*c) || (*c == '!') || (*c == '$') || (*c == '%')
-	    || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
-	    || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
-	    || (*c == '^') || (*c == '_') || (*c == '~') || (*c == '+')
-	    || (*c == '-') || (*c == '.') || (*c == '@')))
-	return 0;
-      c++;
-    }
-    return 1;
-  }
 
   String *runtimeCode() {
     String *s = Swig_include_sys("postgresql_run.swg");

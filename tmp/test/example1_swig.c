@@ -10,8 +10,8 @@
 #define SWIG_VERSION 0x040200
 #define SWIGPOSTGRESQL
 
-static const char * swig_pg_module_name_cstr    = "example1_swig";
-static const char * swig_pg_module_version_cstr = "0.0.1";
+static const char * swig_pg_extension_name_cstr    = "example1_swig";
+static const char * swig_pg_extension_version_cstr = "0.0.1";
 
 /* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable
@@ -818,7 +818,7 @@ static swig_pg_value CStringGetDatum_dup(const char *str) {
 static void _swig_pg_signal_error(const char *fmt, ...) {
   va_list va;
   va_start(va, fmt);
-  fprintf(stderr, "ERROR : SWIG : %s : ", swig_pg_module_name_cstr);
+  fprintf(stderr, "ERROR : SWIG : %s %s : ", swig_pg_extension_name_cstr, swig_pg_extension_version_cstr);
   vfprintf(stderr, fmt, va);
   fprintf(stderr, "\n\n");
   fflush(stderr);
@@ -1052,7 +1052,7 @@ static char *_wrap_const_EXAMPLE1_VERSION = "1.2.3";
 
 PG_FUNCTION_INFO_V1(example1_swig_EXAMPLE1_VERSION);
 swig_pg_value example1_swig_EXAMPLE1_VERSION(PG_FUNCTION_ARGS) {
-#define FUNC_NAME "EXAMPLE1-VERSION"
+#define FUNC_NAME "EXAMPLE1_VERSION"
   swig_pg_value swig_result;
   
   {
@@ -1355,7 +1355,7 @@ static swig_pg_value swig_postgres_reload(SWIG_PG_Env* env) {
   SWIG_PG_Env *menv = SWIG_PG_CREATE_MENV(env);
   SWIG_InitializeModule((void *) env);
   
-  swig_pg_add_global("EXAMPLE1-VERSION", swig_pg_make_prim_w_arity(example1_swig_EXAMPLE1_VERSION, "EXAMPLE1-VERSION", 0, 1), menv);
+  swig_pg_add_global("EXAMPLE1_VERSION", swig_pg_make_prim_w_arity(example1_swig_EXAMPLE1_VERSION, "EXAMPLE1_VERSION", 0, 1), menv);
   swig_pg_add_global("cubic_poly", swig_pg_make_prim_w_arity(example1_swig_cubic_poly,"cubic_poly",5,5),menv);
   
   return swig_pg_void;

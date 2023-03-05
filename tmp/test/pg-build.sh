@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # RUN THIS AS tmp/test/pg-build.sh
-# build-swig
+# swig-configure swig-clean swig-build run-swig compile-code run-example
 #
 
 set -xe
@@ -17,20 +17,30 @@ CC="clang -g -I$(pg_config --includedir-server) -I. -Isrc"
 
 EXTENSION_NAME=example1
 EXTENSION_VERSION=0.0.1
+EXTENSION_MODULE=${EXTENSION_NAME}_swig
+
 set +xe
 export CFLAGS='-g'
+export CXXFLAGS='-g'
 
-cmd-configure-swig() {
+cmd-swig-configure() {
   set -xe
   cd "$swig_root"
 ./autogen.sh
 ./configure
 }
 
-cmd-build-swig() {
+cmd-swig-clean() {
   set -xe
   cd "$swig_root"
-  make
+  rm -f ./Source/Modules/postgresql.o
+  rm -f ./swig
+}
+
+cmd-swig-build() {
+  set -xe
+  cd "$swig_root"
+  make CFLAGS='-g'
 }
 
 # brew services start postgresql@${PG_MAJOR_VERSION}
@@ -41,41 +51,51 @@ cmd-run-swig() {
   cd "$example_dir" || exit $?
 
   args=''
-  # args+=' -debug-top 1,2,3,4'
-  args+="-postgresql -module-version $EXTENSION_VERSION -I$swig_root/Lib -I$swig_root/Lib/postgresql -o ${EXTENSION_NAME}.c src/${EXTENSION_NAME}.i"
+  args+=' -debug-top 4'
+  args+=' -debug-typemap'
+  args+=' -debug-tags'
+  args+=' -debug-symtabs'
+  args+=" -postgresql -extension-version $EXTENSION_VERSION -I$swig_root/Lib -I$swig_root/Lib/postgresql -o ${EXTENSION_MODULE}.c src/${EXTENSION_NAME}.i"
 
   echo "$swig $args"
-  rm -f ${EXTENSION_NAME}.c
-  $swig $args ||
-  [[ -f ${EXTENSION_NAME}.c ]] ||
-  lldb $swig -o run -- $args </dev/null
+  rm -f ${EXTENSION_MODULE}.c ${EXTENSION_MODULE}--${EXTENSION_VERSION}.sql ${EXTENSION_MODULE}.make ${EXTENSION_MODULE}.control
+  (
+    $swig $args ||
+    [[ -f ${EXTENSION_MODULE}.c ]] ||
+    lldb $swig -o run -- $args
 
-  cat src/${EXTENSION_NAME}.c >> ${EXTENSION_NAME}.c
+    cat src/${EXTENSION_NAME}.c >> ${EXTENSION_MODULE}.c
+  ) </dev/null |& tee ${EXTENSION_MODULE}.log
 
-set +x
+  wc -l *.c *.sql *.make *.control
+}
+
+cmd-make-control-files() {
+  set +x
+  cd "$example_dir" || exit $?
 
 # TODO: make this part of swig!
-cat <<EOF | tee ${EXTENSION_NAME}.control
+cat <<EOF | tee ${EXTENSION_MODULE}.control
 ########################################################
-# ${EXTENSION_NAME}.control:
+# ${EXTENSION_MODULE}.control:
 
-comment           = '${EXTENSION_NAME} extension'
-default_version   = '${EXTENSION_VERSION}'
-relocatable       = true
+comment          = '${EXTENSION_MODULE} extension'
+default_version  = '${EXTENSION_VERSION}'
+relocatable      = true
 
 ########################################################
 
 EOF
 
 # TODO: make this part of swig!
-cat <<EOF | tee ${EXTENSION_NAME}.make
+cat <<EOF | tee ${EXTENSION_MODULE}.make
 ########################################################
-# ${EXTENSION_NAME}.make:
+# ${EXTENSION_MODULE}.make:
 
-EXTENSION = ${EXTENSION_NAME}        # the extensions name
-DATA = ${EXTENSION_NAME}--${EXTENSION_VERSION}.sql  # script files to install
-# REGRESS = ${EXTENSION_NAME}_test     # our test script file (without extension)
-MODULES = ${EXTENSION_NAME}
+EXTENSION = ${EXTENSION_MODULE}           # the extensions name
+DATA      = ${EXTENSION_MODULE}--${EXTENSION_VERSION}.sql  # script files to install
+# REGRESS = ${EXTENSION_MODULE}_test      # our test script file (without extension)
+MODULES   = ${EXTENSION_MODULE}
 PG_CFLAGS+=-Isrc
 
 # postgres build stuff
@@ -88,16 +108,16 @@ include \$(PGXS)
 EOF
 
 # TODO: make this part of swig!
-directory='$libdir/'"${EXTENSION_NAME}"
-cat <<EOF | tee ${EXTENSION_NAME}--${EXTENSION_VERSION}.sql
+directory='$libdir/'"${EXTENSION_MODULE}"
+cat <<EOF | tee ${EXTENSION_MODULE}--${EXTENSION_VERSION}.sql
 -- ----------------------------------------------------
--- ${EXTENSION_NAME}--${EXTENSION_VERSION}.sql
+-- ${EXTENSION_MODULE}--${EXTENSION_VERSION}.sql
 
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
-\echo Use "CREATE EXTENSION $EXTENSION_NAME" to load this file. \quit
+\echo Use "CREATE EXTENSION $EXTENSION_MODULE" to load this file. \quit
 
 CREATE FUNCTION EXAMPLE1_VERSION() RETURNS text
-    AS '$directory', '${EXTENSION_NAME}_swig_EXAMPLE1_VERSION'
+    AS '$directory', '${EXTENSION_MODULE}_swig_EXAMPLE1_VERSION'
     LANGUAGE C STRICT;
 
 CREATE FUNCTION cubic_poly(
@@ -107,7 +127,7 @@ CREATE FUNCTION cubic_poly(
   c2  float8,
   c3  float8
 ) RETURNS float8
-    AS '$directory', '${EXTENSION_NAME}_swig_cubic_poly'
+    AS '$directory', '${EXTENSION_MODULE}_cubic_poly'
     LANGUAGE C STRICT;
 
 -- ----------------------------------------------------
@@ -121,19 +141,8 @@ cmd-compile-code() {
   cd "$example_dir" || exit $?
 rm -f *.o *.so
 set -x
-$CC -c -Wall -o src/${EXTENSION_NAME}.o src/${EXTENSION_NAME}.c
-set +x
-
-# https://www.postgresql.org/docs/current/xfunc-c.html#DFUNC
-if false
-then
-$CC -c -o ${EXTENSION_NAME}.o ${EXTENSION_NAME}.c
-$CC -bundle -flat_namespace -undefined suppress -o ${EXTENSION_NAME}.so ${EXTENSION_NAME}.o src/${EXTENSION_NAME}.o
-file ${EXTENSION_NAME}.so
-fi
-
-set -x
-make -f ${EXTENSION_NAME}.make install
+$CC -c -Wall -o src/${EXTENSION_MODULE}.o src/${EXTENSION_MODULE}.c
+make -f ${EXTENSION_MODULE}.make install
 # make -f ${EXTENSION_NAME}.make installcheck
 }
 
@@ -143,8 +152,8 @@ cat <<EOF | tee $EXTENSION_NAME-test.sql
 -- ----------------------------------------------------
 -- $EXTENSION_NAME-test.sql:
 
-DROP EXTENSION $EXTENSION_NAME;
-CREATE EXTENSION $EXTENSION_NAME;
+DROP EXTENSION $EXTENSION_MODULE;
+CREATE EXTENSION $EXTENSION_MODULE;
 
 SELECT EXAMPLE1_VERSION();
 

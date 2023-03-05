@@ -1,8 +1,8 @@
 -- ----------------------------------------------------
 -- example1-test.sql:
 
-DROP EXTENSION example1;
-CREATE EXTENSION example1;
+DROP EXTENSION example1_swig;
+CREATE EXTENSION example1_swig;
 
 SELECT EXAMPLE1_VERSION();
 

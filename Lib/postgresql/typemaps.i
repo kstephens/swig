@@ -178,7 +178,27 @@
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
+/*
+https://www.postgresql.org/docs/current/datatype-numeric.html#DATATYPE-INT
+
+Name	   | Storage Size |	Description                | Range
+smallint | 2 bytes	    | small-range integer        | -32768 to +32767
+integer  | 4 bytes	    | typical choice for integer | -2147483648 to +2147483647
+bigint	 | 8 bytes	    | large-range integer	       | -9223372036854775808 to +9223372036854775807
+decimal	 | variable	    | user-specified precision   | exact up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
+numeric	 | variable	    | user-specified precision   | exactup to 131072 digits before the decimal point; up to 16383 digits after the decimal point
+real	   | 4 bytes	    | variable-precision         | inexact	6 decimal digits precision
+double precision | 8 bytes | variable-precision      | inexact	15 decimal digits precision
+
+Note: unsigned types are not supported by PostgreSQL.
+Use a potentially larger signed type and add a CHECK constraint to enforce non-negative values.
+We use the TEXT type to represent strings.
+*/
+
+
 %define SIMPLE_MAP(C_NAME, PG_PREDICATE, PG_TO_C, C_TO_PG, PG_NAME)
+%typemap("pg_type") C_NAME PG_NAME;
+%typemap("PG_RETURN") C_NAME "";
 %typemap(in) C_NAME {
     $1 = PG_TO_C($input);
 }
@@ -210,48 +230,42 @@
 %enddef
 
 SIMPLE_MAP(bool, SWIG_PG_BOOLP,
-     DatumGetBool, BoolGetDatum, boolean);
+     DatumGetBool, BoolGetDatum, "boolean");
 // ??? Handle with DatumGetVarCharP, CStringGetDatum
 SIMPLE_MAP(char, SWIG_PG_CHARP,
-     DatumGetInt32, Int32GetDatum, character);
+     DatumGetInt32, Int32GetDatum, "char(1)");
 SIMPLE_MAP(unsigned char, SWIG_PG_CHARP,
-     DatumGetUInt32, UInt32GetDatum, character);
+     DatumGetUInt32, UInt32GetDatum, "char(1)");
 SIMPLE_MAP(int, SWIG_is_integer,
-     DatumGetInt32, Int32GetDatum, integer);
+     DatumGetInt32, Int32GetDatum, "integer");
 SIMPLE_MAP(short, SWIG_is_integer,
-     DatumGetInt32, Int32GetDatum, integer);
+     DatumGetInt32, Int32GetDatum, "smallint");
 SIMPLE_MAP(long, SWIG_is_integer,
-     DatumGetInt64, Int64GetDatum, integer);
+     DatumGetInt64, Int64GetDatum, "bigint");
 SIMPLE_MAP(ptrdiff_t, SWIG_is_integer, DatumGetInt64,
-	   DatumGetInt32, integer);
+	   DatumGetInt32, "integer");
 SIMPLE_MAP(unsigned int, SWIG_is_unsigned_integer,
-     DatumGetUInt32, UInt32GetDatum, integer);
+     DatumGetUInt32, UInt32GetDatum, "integer");
 SIMPLE_MAP(unsigned short, SWIG_is_unsigned_integer,
-     DatumGetUInt32, UInt32GetDatum, integer);
+     DatumGetUInt32, UInt32GetDatum, "smallint");
 SIMPLE_MAP(unsigned long, SWIG_is_unsigned_integer,
-     DatumGetUInt64, UInt64GetDatum, integer);
+     DatumGetUInt64, UInt64GetDatum, "bigint");
 SIMPLE_MAP(size_t, SWIG_is_unsigned_integer,
-     DatumGetUInt64, DatumGetUInt64, integer);
+     DatumGetUInt64, DatumGetUInt64, "bigint");
 SIMPLE_MAP(float, SWIG_PG_REALP,
-     DatumGetFloat4, Float4GetDatum, real);
+     DatumGetFloat4, Float4GetDatum, "float4");
 SIMPLE_MAP(double, SWIG_PG_REALP,
-     DatumGetFloat8, Float8GetDatum, real);
+     DatumGetFloat8, Float8GetDatum, "float8");
 
 // ??? memory mgmt?
+// Does DatumGetGetCString work with text type?
 SIMPLE_MAP(char *, SWIG_PG_STRINGP,
-     DatumGetVarCharP, CStringGetDatum_dup, string);
+     DatumGetGetCString, CStringGetDatum_dup, "text");
 SIMPLE_MAP(const char *, SWIG_PG_STRINGP,
-     DatumGetVarCharP, CStringGetDatum_dup, string);
-
-/* For MzScheme 30x:  Use these typemaps if you are not going to use
-   UTF8 encodings in your C code.
- SIMPLE_MAP(char *,SWIG_PG_BYTE_STRINGP, SWIG_PG_BYTE_STR_VAL,
- 	   swig_pg_make_byte_string_without_copying,bytestring);
- SIMPLE_MAP(const char *,SWIG_PG_BYTE_STRINGP, SWIG_PG_BYTE_STR_VAL,
- 	   swig_pg_make_byte_string_without_copying,bytestring);
-*/
+     DatumGetGetCString, CStringGetDatum_dup, "text");
 
 /* Const primitive references.  Passed by value */
+/* !!! : TODO */
 
 %define REF_MAP(C_NAME, PG_PREDICATE, PG_TO_C, C_TO_PG, PG_NAME)
   %typemap(in) const C_NAME & (C_NAME temp) {

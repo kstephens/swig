@@ -81,7 +81,7 @@ static swig_pg_value CStringGetDatum_dup(const char *str) {
 static void _swig_pg_signal_error(const char *fmt, ...) {
   va_list va;
   va_start(va, fmt);
-  fprintf(stderr, "ERROR : SWIG : %s : ", swig_pg_module_name_cstr);
+  fprintf(stderr, "ERROR : SWIG : %s %s : ", swig_pg_extension_name_cstr, swig_pg_extension_version_cstr);
   vfprintf(stderr, fmt, va);
   fprintf(stderr, "\n\n");
   fflush(stderr);
