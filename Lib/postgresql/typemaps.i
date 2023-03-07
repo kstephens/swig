@@ -236,54 +236,54 @@ SIMPLE_MAP(void, SWIG_PG_VOIDP,
      "VOID", "PG_RETURN_VOID()");
 SIMPLE_MAP(bool, SWIG_PG_BOOLP,
      DatumGetBool, BoolGetDatum,
-     "BOOLEAN", "PG_RETURN_BOOL($return_value)");
+     "BOOLEAN", "PG_RETURN_BOOL($result)");
 // ??? Handle with DatumGetVarCharP, CStringGetDatum
 SIMPLE_MAP(char, SWIG_PG_CHARP,
      swig_DatumGetChar, swig_CharGetDatum,
-     "CHAR(1)", "PG_RETURN_CHAR($return_value)");
+     "CHAR(1)", "PG_RETURN_CHAR($result)");
 SIMPLE_MAP(unsigned char, SWIG_PG_CHARP,
      swig_DatumGetUChar, swig_UCharGetDatum,
-     "CHAR(1)", "PG_RETURN_CHAR($return_value)");
+     "CHAR(1)", "PG_RETURN_CHAR($result)");
 SIMPLE_MAP(short, SWIG_is_integer,
      DatumGetInt16, Int16GetDatum,
-     "SMALLINT", "PG_RETURN_INT16($return_value)");
+     "SMALLINT", "PG_RETURN_INT16($result)");
 SIMPLE_MAP(unsigned short, SWIG_is_unsigned_integer,
      DatumGetUInt16, UInt32GetDatum,
-     "INTEGER", "PG_RETURN_UINT16($return_value)");
+     "INTEGER", "PG_RETURN_UINT16($result)");
 SIMPLE_MAP(int, SWIG_is_integer,
      DatumGetInt32, Int32GetDatum,
-     "INTEGER", "PG_RETURN_INT32($return_value)");
+     "INTEGER", "PG_RETURN_INT32($result)");
 SIMPLE_MAP(unsigned int, SWIG_is_unsigned_integer,
      DatumGetUInt32, UInt32GetDatum,
-     "BIGINT", "PG_RETURN_UINT32($return_value)");
+     "BIGINT", "PG_RETURN_UINT32($result)");
 SIMPLE_MAP(long, SWIG_is_integer,
      DatumGetInt64, Int64GetDatum,
-     "BIGINT", "PG_RETURN_INT64($return_value)");
+     "BIGINT", "PG_RETURN_INT64($result)");
 SIMPLE_MAP(ptrdiff_t, SWIG_is_integer,
      DatumGetInt64, Int64GetDatum,
-     "BIGINT", "PG_RETURN_INT64($return_value)");
+     "BIGINT", "PG_RETURN_INT64($result)");
 SIMPLE_MAP(unsigned long, SWIG_is_unsigned_integer,
      DatumGetUInt64, UInt64GetDatum,
-     "BIGINT", "PG_RETURN_UINT64($return_value)");
+     "BIGINT", "PG_RETURN_UINT64($result)");
 SIMPLE_MAP(size_t, SWIG_is_unsigned_integer,
      DatumGetUInt64, UInt64GetDatum,
-     "BIGINT", "PG_RETURN_UINT64($return_value)");
+     "BIGINT", "PG_RETURN_UINT64($result)");
 SIMPLE_MAP(float, SWIG_PG_REALP,
      DatumGetFloat4, Float4GetDatum,
-     "FLOAT4", "PG_RETURN_FLOAT4($return_value)");
+     "FLOAT4", "PG_RETURN_FLOAT4($result)");
 SIMPLE_MAP(double, SWIG_PG_REALP,
      DatumGetFloat8, Float8GetDatum,
-     "FLOAT8", "PG_RETURN_FLOAT8($return_value)");
+     "FLOAT8", "PG_RETURN_FLOAT8($result)");
 
 
 // ??? memory mgmt?
 // Does DatumGetCString work with pg TEXT type?
 SIMPLE_MAP(char *, SWIG_PG_STRINGP,
      DatumGetCString, swig_CStringGetDatum,
-     "TEXT", "PG_RETURN_DATUM(swig_CStringGetDatum($return_value))");
+     "TEXT", "PG_RETURN_DATUM(swig_CStringGetDatum($result))");
 SIMPLE_MAP(const char *, SWIG_PG_STRINGP,
      DatumGetCString, swig_CStringGetDatum,
-     "TEXT", "PG_RETURN_DATUM(swig_CStringGetDatum($return_value))");
+     "TEXT", "PG_RETURN_DATUM(swig_CStringGetDatum($result))");
 
 /* Const primitive references.  Passed by value */
 /* !!! : TODO */

@@ -523,8 +523,14 @@ public:
     // Now have return value, figure out what to do with it.
     pg_return     = Swig_typemap_lookup    ("pg_return", n, Swig_cresult_name(), 0);
     tm            = Swig_typemap_lookup_out("out",       n, Swig_cresult_name(), f, actioncode);
+    String *rtn = 0;
 
-    if ( tm ) {
+    if ( pg_return ) {
+      rtn = NewString(pg_return);
+      Replaceall(rtn, "$result", "result");
+      Replaceall(tm, "$result", "result");
+    } else if ( tm ) {
+      rtn = NewString("return swig_pg_result");
       Replaceall(tm, "$result", "swig_pg_result");
       Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "1" : "0");
       Printv(f->code, tm, "\n", NIL);
@@ -555,18 +561,7 @@ public:
     Printv(f->code, "    ", "swig_pg_signal_error(\"Error in C function\");\n");
     Printv(f->code, "  }\n  PG_END_TRY();\n", NIL);
 
-#if 0
-   // Use %typemap("pg_return") to generate a return statement;
-    if ( pg_return ) {
-      pg_return = NewString(pg_return);
-      Replaceall(rtn, "$return_value", "swig_result");
-      Printv(f->code, pg_return, ";\n", NIL);
-    } else {
-      Printv(f->code, "  return swig_pg_result;");
-    }
-#else
-    Printv(f->code, "  return swig_pg_result;\n", NIL);
-#endif
+    Printv(f->code, "  ", rtn, ";\n", NIL);
 
     Printv(f->code, "#undef FUNC_NAME\n", NIL);
     Printv(f->code, "}\n", NIL);
