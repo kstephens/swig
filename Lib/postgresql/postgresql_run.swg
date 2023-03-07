@@ -16,19 +16,20 @@ extern "C" {
 #include "postgres.h"
 #include "fmgr.h"
 #include "utils/builtins.h"
+#include "utils/elog.h"
 
 PG_MODULE_MAGIC;
 
 /* Common SWIG API */
 
-#define swig_pg_void       ((Datum) 0)
-#define swig_pg_true       BoolGetDatum(1)
+#define swig_pg_void       ((Datum) 0)      // ???
+#define swig_pg_true       BoolGetDatum(1)  // ??? : Save a constant.
 #define swig_pg_false      BoolGetDatum(0)
-#define swig_pg_malloc(X)  palloc(X)
-#define swig_pg_free(X)    pfree(X)
-#define swig_pg_value      Datum
 
-/* !!! : PLACEHOLDERS */
+/**************************************************
+ * !!! : PLACEHOLDERS
+ */
+
 #define swig_pg_UNIMPLEMENTED swig_pg_void
 #define swig_pg_UNUSED ((void) 0)
 
@@ -61,9 +62,9 @@ typedef struct SWIG_PG_Type_s {
 #define SWIG_PG_TYPE(X) ((SWIG_PG_Type) 0)
 #define swig_pg_make_type(...) ((SWIG_PG_Type) 0)
 
-#define swig_pg_make_struct_names(...) ((swig_pg_value*) 0)
+#define swig_pg_make_struct_names(...) ((Datum*) 0)
 #define swig_pg_make_struct_type(...) 0
-#define swig_pg_make_struct_values(...) ((swig_pg_value*) 0)
+#define swig_pg_make_struct_values(...) ((Datum*) 0)
 
 /*
 struct swig_pg_runtime_data {
@@ -72,41 +73,89 @@ struct swig_pg_runtime_data {
 };
 */
 
+/**************************************************
+ * Error handling
+ */
 
-// !!! : Hack
-// https://cpp.hotexamples.com/examples/-/-/PG_RETURN_CSTRING/cpp-pg_return_cstring-function-examples.html
-static swig_pg_value CStringGetDatum_dup(const char *str) {
-  return CStringGetTextDatum(pstrdup(str));
+#define SWIG_PG_ERROR_PARAMS const char *file, int line, const char *function, const char *func_name
+#define SWIG_PG_ERROR_ARGS   __FILE__, __LINE__, __FUNCTION__, FUNC_NAME
+
+static char* _swig_format_error(char* buf, size_t buflen, const char *fmt, va_list* vap) {
+  char *str = buf, *bufend = buf + buflen;
+  memset(buf, 0, buflen);
+  snprintf(str, bufend - str, "%s %s : ", swig_pg_extension_name_cstr, swig_pg_extension_version_cstr);
+  str = strchr(str, '\0');
+  vsnprintf(str, bufend - str, fmt, *vap);
+  return buf;
 }
 
-static void _swig_pg_signal_error(const char *fmt, ...) {
+static void _swig_pg_signal_error(SWIG_PG_ERROR_PARAMS, const char *fmt, ...) {
+  char message[1024];
   va_list va;
   va_start(va, fmt);
-  fprintf(stderr, "ERROR : SWIG : %s %s : ", swig_pg_extension_name_cstr, swig_pg_extension_version_cstr);
-  vfprintf(stderr, fmt, va);
-  fprintf(stderr, "\n\n");
-  fflush(stderr);
+  _swig_format_error(message, sizeof(message), fmt, &va);
   va_end(va);
+  fprintf(stderr, "ERROR : SWIG : %s : %d : %s : %s\n", file, line, function, message);
+  ErrorData* edata = CopyErrorData();
+  edata->elevel = ERROR;
+	edata->filename = pstrdup(file);
+	edata->lineno = line;
+  edata->funcname = function;
+  edata->message = pstrdup(message);
+  ThrowErrorData(edata);
   // ??? : does PG have exception processing?
 }
 
-static void _swig_pg_wrong_type(const char* func_name, const char *msg, int argnum, int argc, swig_pg_value* argv) {
+static void _swig_pg_wrong_type(SWIG_PG_ERROR_PARAMS, const char *msg, int argnum, int argc, Datum* argv) {
   char str[1024];
   snprintf(str, sizeof(str) - 1, "%s : %s : argnum %d", func_name, msg, argnum);
-  _swig_pg_signal_error("%s", str);
+  _swig_pg_signal_error(file, line, function, func_name, "%s : argnum %d", msg, argnum);
 }
 
-#if 0
+static const char FUNC_NAME[] = "UNKNOWN-FUNC-NAME";
+
 #define swig_pg_signal_error(FMT, ...) \
-({ _swig_pg_signal_error(FMT, ## __VA_ARGS__); PG_RETURN_NULL(); })
+_swig_pg_signal_error(SWIG_PG_ERROR_ARGS, FMT, ## __VA_ARGS__)
 #define swig_pg_wrong_type(FMT, ...) \
-({ _swig_pg_wrong_type(FMT, ## __VA_ARGS__); PG_RETURN_NULL(); })
-#else
-#define swig_pg_signal_error(FMT, ...) \
-_swig_pg_signal_error(FMT, ## __VA_ARGS__)
-#define swig_pg_wrong_type(FMT, ...) \
-_swig_pg_wrong_type(FMT, ## __VA_ARGS__)
-#endif
+_swig_pg_wrong_type(SWIG_PG_ERROR_ARGS, FMT, ## __VA_ARGS__)
+
+/****************************************************/
+
+static SWIGINLINE void *
+swig_pg_malloc_(SWIG_PG_ERROR_PARAMS, size_t size) {
+  void *p = palloc(size);
+  if (p == NULL)
+    _swig_pg_signal_error(file, line, function, func_name, "memory error");
+  return p;
+}
+#define swig_pg_malloc(size) swig_pg_malloc_(SWIG_PG_ERROR_ARGS, size)
+#define swig_pg_free(X)      pfree(X)
+
+/****************************************************/
+/* Type helpers */
+
+// https://cpp.hotexamples.com/examples/-/-/PG_RETURN_CSTRING/cpp-pg_return_cstring-function-examples.html
+static Datum swig_CStringGetDatum(const char *str) {
+  return CStringGetTextDatum(pstrdup(str));
+}
+static Datum swig_CharGetDatum(int c) {
+  swig_pg_signal_error("unimplemented");
+  PG_RETURN_VOID();
+}
+static int swig_DatumGetChar(Datum d) {
+  const char *str = DatumGetCString(d);
+  if ( *str ) {
+    return str[0];
+  } else {
+    swig_pg_signal_error("cannot cast empty string to C char");
+    PG_RETURN_VOID();
+  }
+}
+#define swig_DatumGetUChar swig_DatumGetChar
+#define swig_DatumGetVoid(...) ((void) __VA_ARGS__)
+#define swig_VoidGetDatum(...) swig_pg_void
+
+/****************************************************/
 
 #define SWIG_ConvertPtr(s, result, type, flags) \
   SWIG_PG_ConvertPtr(s, result, type, flags)
@@ -118,10 +167,7 @@ _swig_pg_wrong_type(FMT, ## __VA_ARGS__)
 #define SWIG_contract_assert(expr,msg) \
   do { \
     if (!(expr)) { \
-      char *m=(char *) swig_pg_malloc(strlen(msg)+1000); \
-      sprintf(m,"SWIG contract, assertion failed: function=%s, message=%s", \
-              (char *) FUNC_NAME,(char *) msg); \
-      swig_pg_signal_error(m); \
+      swig_pg_signal_error("SWIG contract, assertion failed : %s", msg); \
     } \
   } while (0)
 
@@ -132,7 +178,7 @@ _swig_pg_wrong_type(FMT, ## __VA_ARGS__)
 
 /* PostgreSQL-specific SWIG API */
 
-#define SWIG_malloc(size) swig_pg_malloc_(size, FUNC_NAME)
+#define SWIG_malloc(size) swig_pg_malloc(size)
 #define SWIG_free(mem) swig_pg_free(mem)
 #define SWIG_NewStructFromPtr(ptr,type) \
         _swig_convert_struct_##type##(ptr)
@@ -151,22 +197,22 @@ static SWIG_PG_Type swig_type;
 static void
 pg_free_swig(void *p, void *data) {
   struct swig_pg_proxy *proxy = (struct swig_pg_proxy *) p;
-  if (SWIG_PG_NULLP((swig_pg_value )p) || SWIG_PG_TYPE((swig_pg_value )p) != swig_type)
+  if (SWIG_PG_NULLP((Datum )p) || SWIG_PG_TYPE((Datum )p) != swig_type)
     return;
   if (proxy->type) {
     if (proxy->type->clientdata && proxy->own) {
 #if 0 // !!! FIXME
-      ((SWIG_PG_Prim *)proxy->type->clientdata)(1, (swig_pg_value *)&proxy);
+      ((SWIG_PG_Prim *)proxy->type->clientdata)(1, (Datum *)&proxy);
 #endif
     }
   }
 }
 
-static swig_pg_value
+static Datum
 SWIG_PG_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
   if (ptr) {
     struct swig_pg_proxy *new_proxy;
-    new_proxy = (struct swig_pg_proxy *) swig_pg_malloc(sizeof(struct swig_pg_proxy));
+    new_proxy = (struct swig_pg_proxy *) swig_pg_malloc(sizeof(*new_proxy));
     new_proxy->pgtype = swig_type;
     new_proxy->type = type;
     new_proxy->object = ptr;
@@ -174,14 +220,14 @@ SWIG_PG_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
     if (new_proxy->own) {
       swig_pg_add_finalizer(new_proxy, pg_free_swig, NULL);
     }
-    return (swig_pg_value ) new_proxy;
+    return (Datum ) new_proxy;
   } else {
     return swig_pg_make_null();
   }
 }
 
 static int
-SWIG_PG_ConvertPtr(swig_pg_value s, void **result, swig_type_info *type, int flags) {
+SWIG_PG_ConvertPtr(Datum s, void **result, swig_type_info *type, int flags) {
   swig_cast_info *cast;
   int ret = SWIG_ERROR;
 
@@ -222,22 +268,14 @@ SWIG_PG_ConvertPtr(swig_pg_value s, void **result, swig_type_info *type, int fla
 }
 
 static SWIGINLINE void *
-SWIG_PG_MustGetPtr(swig_pg_value s, swig_type_info *type,
+SWIG_PG_MustGetPtr(Datum s, swig_type_info *type,
                          int argnum, int flags, const char *func_name,
-                         int argc, swig_pg_value *argv) {
+                         int argc, Datum *argv) {
   void *result;
   if (SWIG_PG_ConvertPtr(s, &result, type, flags)) {
-    swig_pg_wrong_type(func_name, type->str ? type->str : "void *", argnum - 1, argc, argv);
+    _swig_pg_wrong_type(__FILE__, __LINE__, __FUNCTION__, func_name, type->str ? type->str : "void *", argnum - 1, argc, argv);
   }
   return result;
-}
-
-static SWIGINLINE void *
-swig_pg_malloc_(size_t size, const char *func_name) {
-  void *p = swig_pg_malloc(size);
-  if (p == NULL)
-    _swig_pg_signal_error("SWIG : memory error : %s", func_name);
-  return p;
 }
 
 #ifndef swig_pg_make_inspector
@@ -246,19 +284,19 @@ swig_pg_malloc_(size_t size, const char *func_name) {
 #endif
 
 /* Function to create a new struct. */
-static swig_pg_value
+static Datum
 SWIG_PG_new_swig_pg_struct (SWIG_PG_Env* env, const char* basename,
 				 int num_fields, char** field_names)
 {
-    swig_pg_value new_type;
+    Datum new_type;
     int count_out = 0, i = 0;
-    swig_pg_value *struct_names;
-    swig_pg_value *vals;
-    swig_pg_value *a = (swig_pg_value *) \
-        swig_pg_malloc(num_fields*sizeof(swig_pg_value ));
+    Datum *struct_names;
+    Datum *vals;
+    Datum *a = (Datum *) \
+        swig_pg_malloc(num_fields * sizeof(a[0]));
 
     for (i=0; i<num_fields; ++i) {
-        a[i] = (swig_pg_value ) swig_pg_intern_symbol(field_names[i]);
+        a[i] = (Datum) swig_pg_intern_symbol(field_names[i]);
     }
 
     new_type = swig_pg_make_struct_type(swig_pg_intern_symbol(basename),
@@ -268,9 +306,6 @@ SWIG_PG_new_swig_pg_struct (SWIG_PG_Env* env, const char* basename,
                                        0 /* auto_fields */,
                                        NULL /* auto_val */,
                                        NULL /* properties */
-#ifdef MZSCHEME30X
-				       ,NULL /* Guard */
-#endif
 				       );
     struct_names = swig_pg_make_struct_names(swig_pg_intern_symbol(basename),
                                             swig_pg_build_list(num_fields,a),

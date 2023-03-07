@@ -12,7 +12,7 @@
 #include <string>
 
 SWIGINTERNINLINE
-std::string swig_scm_to_string(swig_pg_value x) {
+std::string swig_scm_to_string(Datum x) {
     return std::string(POSTGRESQL_STR_VAL(x));
 }
 

@@ -115,13 +115,13 @@
 /* Enums */
 %typemap(in) enum SWIGTYPE {
   if (!SWIG_is_integer($input))
-      swig_pg_wrong_type(FUNC_NAME, "integer", $argnum - 1, argc, argv);
+      swig_pg_wrong_type("INTEGER", $argnum - 1, argc, argv);
   $1 = ($1_type) SWIG_convert_int($input);
 }
 
 %typemap(varin) enum SWIGTYPE {
   if (!SWIG_is_integer($input))
-      swig_pg_wrong_type(FUNC_NAME, "integer", 0, argc, argv);
+      swig_pg_wrong_type("INTEGER", 0, argc, argv);
   $1 = ($1_type) SWIG_convert_int($input);
 }
 
@@ -196,9 +196,10 @@ We use the TEXT type to represent strings.
 */
 
 
-%define SIMPLE_MAP(C_NAME, PG_PREDICATE, PG_TO_C, C_TO_PG, PG_NAME)
-%typemap("pg_type") C_NAME PG_NAME;
-%typemap("PG_RETURN") C_NAME "";
+%define SIMPLE_MAP(C_NAME, PG_PREDICATE, PG_TO_C, C_TO_PG, PG_NAME, PG_RETURN)
+%typemap("pg_type")   C_NAME PG_NAME;
+%typemap("pg_return") C_NAME PG_RETURN;
+%typemap("pg_arg")    C_NAME "";
 %typemap(in) C_NAME {
     $1 = PG_TO_C($input);
 }
@@ -219,7 +220,7 @@ We use the TEXT type to represent strings.
     $1 = &temp;
 }
 %typemap(argout) C_NAME *OUTPUT {
-    swig_pg_value  s;
+    Datum  s;
     s = C_TO_PG(*$1);
     SWIG_APPEND_VALUE(s);
 }
@@ -229,40 +230,60 @@ We use the TEXT type to represent strings.
 %typemap(argout) C_NAME *INOUT = C_NAME *OUTPUT;
 %enddef
 
+
+SIMPLE_MAP(void, SWIG_PG_VOIDP,
+     swig_DatumGetVoid, swig_VoidGetDatum,
+     "VOID", "PG_RETURN_VOID()");
 SIMPLE_MAP(bool, SWIG_PG_BOOLP,
-     DatumGetBool, BoolGetDatum, "boolean");
+     DatumGetBool, BoolGetDatum,
+     "BOOLEAN", "PG_RETURN_BOOL($return_value)");
 // ??? Handle with DatumGetVarCharP, CStringGetDatum
 SIMPLE_MAP(char, SWIG_PG_CHARP,
-     DatumGetInt32, Int32GetDatum, "char(1)");
+     swig_DatumGetChar, swig_CharGetDatum,
+     "CHAR(1)", "PG_RETURN_CHAR($return_value)");
 SIMPLE_MAP(unsigned char, SWIG_PG_CHARP,
-     DatumGetUInt32, UInt32GetDatum, "char(1)");
-SIMPLE_MAP(int, SWIG_is_integer,
-     DatumGetInt32, Int32GetDatum, "integer");
+     swig_DatumGetUChar, swig_UCharGetDatum,
+     "CHAR(1)", "PG_RETURN_CHAR($return_value)");
 SIMPLE_MAP(short, SWIG_is_integer,
-     DatumGetInt32, Int32GetDatum, "smallint");
-SIMPLE_MAP(long, SWIG_is_integer,
-     DatumGetInt64, Int64GetDatum, "bigint");
-SIMPLE_MAP(ptrdiff_t, SWIG_is_integer, DatumGetInt64,
-	   DatumGetInt32, "integer");
-SIMPLE_MAP(unsigned int, SWIG_is_unsigned_integer,
-     DatumGetUInt32, UInt32GetDatum, "integer");
+     DatumGetInt16, Int16GetDatum,
+     "SMALLINT", "PG_RETURN_INT16($return_value)");
 SIMPLE_MAP(unsigned short, SWIG_is_unsigned_integer,
-     DatumGetUInt32, UInt32GetDatum, "smallint");
+     DatumGetUInt16, UInt32GetDatum,
+     "INTEGER", "PG_RETURN_UINT16($return_value)");
+SIMPLE_MAP(int, SWIG_is_integer,
+     DatumGetInt32, Int32GetDatum,
+     "INTEGER", "PG_RETURN_INT32($return_value)");
+SIMPLE_MAP(unsigned int, SWIG_is_unsigned_integer,
+     DatumGetUInt32, UInt32GetDatum,
+     "BIGINT", "PG_RETURN_UINT32($return_value)");
+SIMPLE_MAP(long, SWIG_is_integer,
+     DatumGetInt64, Int64GetDatum,
+     "BIGINT", "PG_RETURN_INT64($return_value)");
+SIMPLE_MAP(ptrdiff_t, SWIG_is_integer,
+     DatumGetInt64, Int64GetDatum,
+     "BIGINT", "PG_RETURN_INT64($return_value)");
 SIMPLE_MAP(unsigned long, SWIG_is_unsigned_integer,
-     DatumGetUInt64, UInt64GetDatum, "bigint");
+     DatumGetUInt64, UInt64GetDatum,
+     "BIGINT", "PG_RETURN_UINT64($return_value)");
 SIMPLE_MAP(size_t, SWIG_is_unsigned_integer,
-     DatumGetUInt64, DatumGetUInt64, "bigint");
+     DatumGetUInt64, UInt64GetDatum,
+     "BIGINT", "PG_RETURN_UINT64($return_value)");
 SIMPLE_MAP(float, SWIG_PG_REALP,
-     DatumGetFloat4, Float4GetDatum, "float4");
+     DatumGetFloat4, Float4GetDatum,
+     "FLOAT4", "PG_RETURN_FLOAT4($return_value)");
 SIMPLE_MAP(double, SWIG_PG_REALP,
-     DatumGetFloat8, Float8GetDatum, "float8");
+     DatumGetFloat8, Float8GetDatum,
+     "FLOAT8", "PG_RETURN_FLOAT8($return_value)");
+
 
 // ??? memory mgmt?
-// Does DatumGetGetCString work with text type?
+// Does DatumGetCString work with pg TEXT type?
 SIMPLE_MAP(char *, SWIG_PG_STRINGP,
-     DatumGetGetCString, CStringGetDatum_dup, "text");
+     DatumGetCString, swig_CStringGetDatum,
+     "TEXT", "PG_RETURN_DATUM(swig_CStringGetDatum($return_value))");
 SIMPLE_MAP(const char *, SWIG_PG_STRINGP,
-     DatumGetGetCString, CStringGetDatum_dup, "text");
+     DatumGetCString, swig_CStringGetDatum,
+     "TEXT", "PG_RETURN_DATUM(swig_CStringGetDatum($return_value))");
 
 /* Const primitive references.  Passed by value */
 /* !!! : TODO */
@@ -270,7 +291,7 @@ SIMPLE_MAP(const char *, SWIG_PG_STRINGP,
 %define REF_MAP(C_NAME, PG_PREDICATE, PG_TO_C, C_TO_PG, PG_NAME)
   %typemap(in) const C_NAME & (C_NAME temp) {
      if (!PG_PREDICATE($input))
-        swig_pg_wrong_type(FUNC_NAME, #PG_NAME, $argnum - 1, argc, argv);
+        swig_pg_wrong_type(#PG_NAME, $argnum - 1, argc, argv);
      temp = PG_TO_C($input);
      $1 = &temp;
   }
@@ -310,11 +331,11 @@ REF_MAP(double, SWIG_PG_REALP, swig_pg_real_to_double,
 
 %typemap(out) void "$result = swig_pg_void;"
 
-/* Pass through swig_pg_value   */
+/* Pass through Datum   */
 
-%typemap (in) swig_pg_value   "$1=$input;"
-%typemap (out) swig_pg_value   "$result=$1;"
-%typecheck(SWIG_TYPECHECK_POINTER) swig_pg_value  "$1=1;";
+%typemap (in) Datum   "$1=$input;"
+%typemap (out) Datum   "$result=$1;"
+%typecheck(SWIG_TYPECHECK_POINTER) Datum  "$1=1;";
 
 
 /* ------------------------------------------------------------
@@ -407,5 +428,3 @@ REF_MAP(double, SWIG_PG_REALP, swig_pg_real_to_double,
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
-
-

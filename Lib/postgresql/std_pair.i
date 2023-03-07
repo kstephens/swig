@@ -27,7 +27,7 @@ namespace std {
             if (SWIG_PG_PAIRP($input)) {
                 T* x;
                 U* y;
-                swig_pg_value first, *second;
+                Datum first, *second;
                 first = swig_pg_car($input);
                 second = swig_pg_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
@@ -45,7 +45,7 @@ namespace std {
             if (SWIG_PG_PAIRP($input)) {
                 T* x;
                 U* y;
-                swig_pg_value first, *second;
+                Datum first, *second;
                 first = swig_pg_car($input);
                 second = swig_pg_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
@@ -60,8 +60,8 @@ namespace std {
         %typemap(out) pair<T,U> {
             T* x = new T($1.first);
             U* y = new U($1.second);
-            swig_pg_value first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
-            swig_pg_value second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
+            Datum first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
+            Datum second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
             $result = swig_pg_make_pair(first,second);
         }
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
@@ -69,8 +69,8 @@ namespace std {
             if (SWIG_PG_PAIRP($input)) {
                 T* x;
                 U* y;
-                swig_pg_value first = swig_pg_car($input);
-                swig_pg_value second = swig_pg_cdr($input);
+                Datum first = swig_pg_car($input);
+                Datum second = swig_pg_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
                                     $descriptor(T *), 0) != -1 &&
                     SWIG_ConvertPtr(second,(void**) &y,
@@ -95,8 +95,8 @@ namespace std {
             if (SWIG_PG_PAIRP($input)) {
                 T* x;
                 U* y;
-                swig_pg_value first = swig_pg_car($input);
-                swig_pg_value second = swig_pg_cdr($input);
+                Datum first = swig_pg_car($input);
+                Datum second = swig_pg_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
                                     $descriptor(T *), 0) != -1 &&
                     SWIG_ConvertPtr(second,(void**) &y,
@@ -136,7 +136,7 @@ namespace std {
         %typemap(in) pair<T,U> (std::pair<T,U>* m) {
             if (SWIG_PG_PAIRP($input)) {
                 U* y;
-                swig_pg_value first, *second;
+                Datum first, *second;
                 first = swig_pg_car($input);
                 second = swig_pg_cdr($input);
                 if (!CHECK(first))
@@ -155,7 +155,7 @@ namespace std {
                                        std::pair<T,U>* m) {
             if (SWIG_PG_PAIRP($input)) {
                 U* y;
-                swig_pg_value first, *second;
+                Datum first, *second;
                 first = swig_pg_car($input);
                 second = swig_pg_cdr($input);
                 if (!CHECK(first))
@@ -171,15 +171,15 @@ namespace std {
         }
         %typemap(out) pair<T,U> {
             U* y = new U($1.second);
-            swig_pg_value second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
+            Datum second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
             $result = swig_pg_make_pair(CONVERT_TO($1.first),second);
         }
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native pair? */
             if (SWIG_PG_PAIRP($input)) {
                 U* y;
-                swig_pg_value first = swig_pg_car($input);
-                swig_pg_value second = swig_pg_cdr($input);
+                Datum first = swig_pg_car($input);
+                Datum second = swig_pg_cdr($input);
                 if (CHECK(first) &&
                     SWIG_ConvertPtr(second,(void**) &y,
                                     $descriptor(U *), 0) != -1) {
@@ -202,8 +202,8 @@ namespace std {
             /* native pair? */
             if (SWIG_PG_PAIRP($input)) {
                 U* y;
-                swig_pg_value first = swig_pg_car($input);
-                swig_pg_value second = swig_pg_cdr($input);
+                Datum first = swig_pg_car($input);
+                Datum second = swig_pg_cdr($input);
                 if (CHECK(first) &&
                     SWIG_ConvertPtr(second,(void**) &y,
                                     $descriptor(U *), 0) != -1) {
@@ -237,7 +237,7 @@ namespace std {
         %typemap(in) pair<T,U> (std::pair<T,U>* m) {
             if (SWIG_PG_PAIRP($input)) {
                 T* x;
-                swig_pg_value first, *second;
+                Datum first, *second;
                 first = swig_pg_car($input);
                 second = swig_pg_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
@@ -256,7 +256,7 @@ namespace std {
                                        std::pair<T,U>* m) {
             if (SWIG_PG_PAIRP($input)) {
                 T* x;
-                swig_pg_value first, *second;
+                Datum first, *second;
                 first = swig_pg_car($input);
                 second = swig_pg_cdr($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
@@ -272,15 +272,15 @@ namespace std {
         }
         %typemap(out) pair<T,U> {
             T* x = new T($1.first);
-            swig_pg_value first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
+            Datum first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
             $result = swig_pg_make_pair(first,CONVERT_TO($1.second));
         }
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native pair? */
             if (SWIG_PG_PAIRP($input)) {
                 T* x;
-                swig_pg_value first = swig_pg_car($input);
-                swig_pg_value second = swig_pg_cdr($input);
+                Datum first = swig_pg_car($input);
+                Datum second = swig_pg_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
                                     $descriptor(T *), 0) != -1 &&
                     CHECK(second)) {
@@ -303,8 +303,8 @@ namespace std {
             /* native pair? */
             if (SWIG_PG_PAIRP($input)) {
                 T* x;
-                swig_pg_value first = swig_pg_car($input);
-                swig_pg_value second = swig_pg_cdr($input);
+                Datum first = swig_pg_car($input);
+                Datum second = swig_pg_cdr($input);
                 if (SWIG_ConvertPtr(first,(void**) &x,
                                     $descriptor(T *), 0) != -1 &&
                     CHECK(second)) {
@@ -338,7 +338,7 @@ namespace std {
     template<> struct pair<T,U> {
         %typemap(in) pair<T,U> (std::pair<T,U>* m) {
             if (SWIG_PG_PAIRP($input)) {
-                swig_pg_value first, *second;
+                Datum first, *second;
                 first = swig_pg_car($input);
                 second = swig_pg_cdr($input);
                 if (!CHECK_T(first) || !CHECK_U(second))
@@ -356,7 +356,7 @@ namespace std {
                      const pair<T,U>* (std::pair<T,U> temp,
                                        std::pair<T,U>* m) {
             if (SWIG_PG_PAIRP($input)) {
-                swig_pg_value first, *second;
+                Datum first, *second;
             T *x;
                 first = swig_pg_car($input);
                 second = swig_pg_cdr($input);
@@ -379,8 +379,8 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native pair? */
             if (SWIG_PG_PAIRP($input)) {
-                swig_pg_value first = swig_pg_car($input);
-                swig_pg_value second = swig_pg_cdr($input);
+                Datum first = swig_pg_car($input);
+                Datum second = swig_pg_cdr($input);
                 if (CHECK_T(first) && CHECK_U(second)) {
                         $1 = 1;
                 } else {
@@ -400,8 +400,8 @@ namespace std {
                                         const pair<T,U>* {
             /* native pair? */
             if (SWIG_PG_PAIRP($input)) {
-                swig_pg_value first = swig_pg_car($input);
-                swig_pg_value second = swig_pg_cdr($input);
+                Datum first = swig_pg_car($input);
+                Datum second = swig_pg_cdr($input);
                 if (CHECK_T(first) && CHECK_U(second)) {
                         $1 = 1;
                 } else {

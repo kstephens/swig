@@ -215,7 +215,7 @@ public:
 	Printf(f_init, "\tswig_pg_finish_primitive_module(menv);\n");
       }
       Printf(f_init, "\treturn swig_pg_void;\n}\n");
-      Printf(f_init, "static swig_pg_value swig_pg_initialize(SWIG_PG_Env *env) {\n");
+      Printf(f_init, "static Datum swig_pg_initialize(SWIG_PG_Env *env) {\n");
 
       if (load_libraries) {
 	Printf(f_init, "swig_pg_set_dlopen_libraries(\"%s\");\n", load_libraries);
@@ -224,7 +224,7 @@ public:
       Printf(f_init, "\treturn swig_pg_reload(env);\n");
       Printf(f_init, "}\n");
 
-      Printf(f_init, "static swig_pg_value swig_pg_module_name(void) {\n");
+      Printf(f_init, "static Datum swig_pg_module_name(void) {\n");
       if (declaremodule) {
 	Printf(f_init, "   return swig_pg_intern_symbol((char*)\"%s\");\n", module);
       } else {
@@ -264,16 +264,16 @@ public:
   int create_pg_control(Node *n) {
     String* tmpl = NewString(
       "########################################################\n"
-      "# @extension_name@.control:\n"
+      "# $extension_name.control:\n"
       "\n"
-      "comment           = '@extension_name@ extension'\n"
-      "default_version   = '@extension_version@'\n"
+      "comment           = '$extension_name extension'\n"
+      "default_version   = '$extension_version'\n"
       "relocatable       = true\n"
       "\n"
       "########################################################\n"
       "\n");
-    Replaceall(tmpl, "@extension_name@", extension_name);
-    Replaceall(tmpl, "@extension_version@", extension_version);
+    Replaceall(tmpl, "$extension_name"   , extension_name);
+    Replaceall(tmpl, "$extension_version", extension_version);
     Printv(f_pg_control, tmpl, NIL);
     return 0;
   }
@@ -281,12 +281,12 @@ public:
   int create_pg_make(Node *n) {
     String* tmpl = NewString(
       "########################################################\n"
-      "# @extension_name@.make:\n"
+      "# $extension_name.make:\n"
       "\n"
-      "EXTENSION   = @extension_name@\n"
-      "DATA        = @extension_name@--@extension_version@.sql\n"
-      "# REGRESS   = @extension_name@_test\n"
-      "MODULES     = @extension_name@\n"
+      "EXTENSION   = $extension_name\n"
+      "DATA        = $extension_name--$extension_version.sql\n"
+      "# REGRESS   = $extension_name_test\n"
+      "MODULES     = $extension_name\n"
       "PG_CFLAGS  += -Isrc\n"
       "PG_CONFIG   = pg_config\n"
       "PGXS       := $(shell $(PG_CONFIG) --pgxs)\n"
@@ -294,8 +294,8 @@ public:
       "\n"
       "########################################################\n"
       "\n");
-    Replaceall(tmpl, "@extension_name@", extension_name);
-    Replaceall(tmpl, "@extension_version@", extension_version);
+    Replaceall(tmpl, "$extension_name"   , extension_name);
+    Replaceall(tmpl, "$extension_version", extension_version);
     Printv(f_pg_make, tmpl, NIL);
     return 0;
   }
@@ -324,10 +324,9 @@ public:
   int functionSql(Node *n, ParmList *l) {
     char *iname = GetChar(n, "sym:name");
     SwigType *d = Getattr(n, "type");
-    String* rtn_pg_type;
 
-    rtn_pg_type = Swig_typemap_lookup("pg_type", n, Swig_cresult_name(), 0);
-
+    String *rtn_pg_type   = Swig_typemap_lookup("pg_type",   n, Swig_cresult_name(), 0);
+    String *rtn_pg_return = Swig_typemap_lookup("pg_return", n, Swig_cresult_name(), 0);
     String *pg_func = Getattr(n, "wrap:pg_func");
     String *pg_name = Getattr(n, "wrap:pg_name");
     String *extension_dir = NewString("");
@@ -340,9 +339,9 @@ public:
 
       Swig_typemap_attach_parms("pg_type", l, 0);
       for ( p = l; p; i++) {
-        String   *pname = Getattr(p, "name");
-        SwigType *pt =  Getattr(p, "type");
-        String   *pg_type = Getattr(p, "tmap:pg_type");
+        String   *pname    = Getattr(p, "name");
+        SwigType *pt       = Getattr(p, "type");
+        String   *pg_type  = Getattr(p, "tmap:pg_type");
         if ( i > 0 )
           Printf(f_pg_sql, ",");
         Printf(f_pg_sql, "\n    \"%s\" %s", pname, pg_type);
@@ -372,6 +371,7 @@ public:
     String *outarg = NewString("");
     String *build = NewString("");
     String *tm;
+    String *pg_return = 0;
     int i = 0;
     int numargs;
     int numreq;
@@ -406,12 +406,13 @@ public:
 
     // writing the function wrapper function
     Printv(f->def, "PG_FUNCTION_INFO_V1(", wname, ");\n", NIL);
-    Printv(f->def, "swig_pg_value ", wname, "(PG_FUNCTION_ARGS) {\n", NIL);
-    Printv(f->def, "swig_pg_value _swig_result;\n", NIL);
+    Printv(f->def, "Datum ", wname, "(PG_FUNCTION_ARGS) {\n", NIL);
 
-    /* Define the scheme name in C. This define is used by several
-       macros. */
     Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
+
+    Wrapper_add_local(f, "swig_pg_result", "Datum swig_pg_result = swig_pg_void");
+
+    Printv(f->code, "  	PG_TRY();\n{\n", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_parameter_variables(l, f);
@@ -434,17 +435,13 @@ public:
       }
     }
 
-    // adds local variables
-    // Wrapper_add_local(f, "lenv", "int lenv = 1");
-    // Wrapper_add_local(f, "values", "swig_pg_value values[MAXVALUES]");
-
     if (load_libraries) {
       Printf(f->code, "if (!_function_loaded) { _the_function=postgresql_load_function(\"%s\");_function_loaded=(1==1); }\n", iname);
       Printf(f->code, "if (!_the_function) { swig_pg_signal_error(\"Cannot load C function '%s'\"); }\n", iname);
       Printf(f->code, "caller=_the_function;\n");
     }
 
-    // Now write code to extract the parameters (this is super ugly)
+    // Extract parameters:
 
     for (i = 0, p = l; i < numargs; i++) {
       /* Skip ignored arguments */
@@ -524,12 +521,12 @@ public:
     String *actioncode = emit_action(n);
 
     // Now have return value, figure out what to do with it.
-    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
-      Replaceall(tm, "$result", "_swig_result");
-      if (GetFlag(n, "feature:new"))
-	Replaceall(tm, "$owner", "1");
-      else
-	Replaceall(tm, "$owner", "0");
+    pg_return     = Swig_typemap_lookup    ("pg_return", n, Swig_cresult_name(), 0);
+    tm            = Swig_typemap_lookup_out("out",       n, Swig_cresult_name(), f, actioncode);
+
+    if ( tm ) {
+      Replaceall(tm, "$result", "swig_pg_result");
+      Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "1" : "0");
       Printv(f->code, tm, "\n", NIL);
     } else {
       throw_unhandled_postgresql_type_error(d);
@@ -543,27 +540,35 @@ public:
     Printv(f->code, Char(cleanup), NIL);
 
     // Look for any remaining cleanup
-
-    if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+    if ( GetFlag(n, "feature:new") && (tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0)) ) {
 	Printv(f->code, tm, "\n", NIL);
-      }
     }
-    // Free any memory allocated by the function being wrapped..
 
+    // Free any memory allocated by the function being wrapped..
     if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
       Printv(f->code, tm, "\n", NIL);
     }
-    // Wrap things up (in a manner of speaking)
 
-    // TODO: use some sort of typemap to determine the name of the PG_RETURN_XXX macro:
-    // const char *pg_TYPE = "XXXX";
-    // Printv(f->code, tab4, "PG_RETURN_", pg_TYPE, "(result);\n", NIL);
+    Printv(f->code, "  }\n  PG_CATCH();\n  {\n", NIL);
 
-    // FIXME: This subverts the PG_RETURN_XXX macro abstraction:
-    Printv(f->code, tab4, "return _swig_result;\n", NIL);
+    // TODO: do something with the error message?
+    Printv(f->code, "    ", "swig_pg_signal_error(\"Error in C function\");\n");
+    Printv(f->code, "  }\n  PG_END_TRY();\n", NIL);
 
-    Printf(f->code, "#undef FUNC_NAME\n");
+#if 0
+   // Use %typemap("pg_return") to generate a return statement;
+    if ( pg_return ) {
+      pg_return = NewString(pg_return);
+      Replaceall(rtn, "$return_value", "swig_result");
+      Printv(f->code, pg_return, ";\n", NIL);
+    } else {
+      Printv(f->code, "  return swig_pg_result;");
+    }
+#else
+    Printv(f->code, "  return swig_pg_result;\n", NIL);
+#endif
+
+    Printv(f->code, "#undef FUNC_NAME\n", NIL);
     Printv(f->code, "}\n", NIL);
 
     /* Substitute the function name */
@@ -585,6 +590,7 @@ public:
 	/* Emit overloading dispatch function */
 
 	int maxargs;
+  // ??? : FIXME
 	String *dispatch = Swig_overload_dispatch(n, "return %s(argc,argv);", &maxargs);
 
 	/* Generate a dispatch wrapper for all overloaded functions */
@@ -593,7 +599,7 @@ public:
 	String *dname = name_wrapper(iname);
 
   Printv(f->def, "PG_FUNCTION_INFO_V1(", dname, ");\n", NIL);
-	Printv(df->def, "swig_pg_value\n", dname, "(PG_FUNCTION_ARGS) {", NIL);
+	Printv(df->def, "Datum\n", dname, "(PG_FUNCTION_ARGS) {", NIL);
 	Printv(df->code, dispatch, "\n", NIL);
 	Printf(df->code, "swig_pg_signal_error(\"No matching function for overloaded '%s'\");\n", iname);
 	Printf(df->code, "return NULL;\n");
@@ -614,6 +620,7 @@ public:
     Delete(outarg);
     Delete(cleanup);
     Delete(build);
+    Delete(pg_return);
     DelWrapper(f);
     return SWIG_OK;
   }
@@ -657,10 +664,10 @@ public:
 
     if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
       Printf(f->def, "PG_FUNCTION_INFO_V1(%s);\n", var_name);
-      Printf(f->def, "swig_pg_value %s(PG_FUNCTION_ARGS) {\n", var_name);
+      Printf(f->def, "Datum %s(PG_FUNCTION_ARGS) {\n", var_name);
       Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
 
-      Wrapper_add_local(f, "swig_result", "swig_pg_value swig_result");
+      Wrapper_add_local(f, "swig_pg_result", "Datum swig_pg_result = swig_pg_void");
 
       if (!GetFlag(n, "feature:immutable")) {
       	/* Check for a setting of the variable value */
@@ -678,23 +685,17 @@ public:
       // of evaluating or setting)
 
       if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-	Replaceall(tm, "$result", "swig_result");
+	Replaceall(tm, "$result", "swig_pg_result");
 	/* Printf (f->code, "%s\n", tm); */
 	emit_action_code(n, f->code, tm);
       } else {
 	throw_unhandled_postgresql_type_error(t);
       }
-      Printf(f->code, "\nreturn swig_result;\n");
+      Printf(f->code, "\nreturn swig_pg_result;\n");
       Printf(f->code, "#undef FUNC_NAME\n");
       Printf(f->code, "}\n");
 
       Wrapper_print(f, f_wrappers);
-
-      // Now add symbol to the POSTGRESQL interpreter
-
-      Printv(init_func_def,
-      "swig_pg_add_global(\"", proc_name, "\", swig_pg_make_prim_w_arity(", var_name, ", \"", proc_name, "\", ", "0", ", ", "1", "), menv);\n", NIL);
-
     } else {
       Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number, "Unsupported variable type %s (ignored).\n", SwigType_str(t, 0));
     }
@@ -823,12 +824,12 @@ public:
 
     Printv(fieldnames_tab, "static const char *_swig_struct_", cls_swigtype, "_field_names[] = { \n", NIL);
 
-    Printv(convert_proto_tab, "static swig_pg_value_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ");\n", NIL);
+    Printv(convert_proto_tab, "static Datum_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ");\n", NIL);
 
-    Printv(convert_tab, "static swig_pg_value_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ")\n {\n", NIL);
+    Printv(convert_tab, "static Datum_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ")\n {\n", NIL);
 
     Printv(convert_tab,
-	   tab4, "swig_pg_value obj;\n", tab4, "swig_pg_value fields[_swig_struct_", cls_swigtype, "_field_names_cnt];\n", tab4, "int i = 0;\n\n", NIL);
+	   tab4, "Datum obj;\n", tab4, "Datum fields[_swig_struct_", cls_swigtype, "_field_names_cnt];\n", tab4, "int i = 0;\n\n", NIL);
 
     /* Generate normal wrappers */
     Language::classHandler(n);
@@ -838,7 +839,7 @@ public:
 
     Printv(fieldnames_tab, "};\n", NIL);
 
-    Printv(f_header, "static swig_pg_value_swig_struct_type_", cls_swigtype, ";\n", NIL);
+    Printv(f_header, "static Datum_swig_struct_type_", cls_swigtype, ";\n", NIL);
 
     Printv(f_header, fieldnames_tab, NIL);
     Printv(f_header, "#define  _swig_struct_", cls_swigtype, "_field_names_cnt (sizeof(_swig_struct_", cls_swigtype, "_field_names)/sizeof(char*))\n", NIL);

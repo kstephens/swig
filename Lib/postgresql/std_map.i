@@ -46,11 +46,11 @@ namespace std {
                 $1 = std::map< K, T, C >();
             } else if (SWIG_PG_PAIRP($input)) {
                 $1 = std::map< K, T, C >();
-                swig_pg_value alist = $input;
+                Datum alist = $input;
                 while (!SWIG_PG_NULLP(alist)) {
                     K* k;
                     T* x;
-                    swig_pg_value entry, *key, *val;
+                    Datum entry, *key, *val;
                     entry = swig_pg_car(alist);
                     if (!SWIG_PG_PAIRP(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
@@ -82,11 +82,11 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 temp = std::map< K, T, C >();
                 $1 = &temp;
-                swig_pg_value alist = $input;
+                Datum alist = $input;
                 while (!SWIG_PG_NULLP(alist)) {
                     K* k;
                     T* x;
-                    swig_pg_value entry, *key, *val;
+                    Datum entry, *key, *val;
                     entry = swig_pg_car(alist);
                     if (!SWIG_PG_PAIRP(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
@@ -108,14 +108,14 @@ namespace std {
             }
         }
         %typemap(out) map< K, T, C > {
-            swig_pg_value alist = swig_pg_null;
+            Datum alist = swig_pg_null;
             for (std::map< K, T, C >::reverse_iterator i=$1.rbegin();
                                                   i!=$1.rend(); ++i) {
                 K* key = new K(i->first);
                 T* val = new T(i->second);
-                swig_pg_value k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
-                swig_pg_value x = SWIG_NewPointerObj(val,$descriptor(T *), 1);
-                swig_pg_value entry = swig_pg_make_pair(k,x);
+                Datum k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
+                Datum x = SWIG_NewPointerObj(val,$descriptor(T *), 1);
+                Datum entry = swig_pg_make_pair(k,x);
                 alist = swig_pg_make_pair(entry,alist);
             }
             $result = alist;
@@ -129,10 +129,10 @@ namespace std {
                 /* check the first element only */
                 K* k;
                 T* x;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_PG_PAIRP(head)) {
-                    swig_pg_value key = swig_pg_car(head);
-                    swig_pg_value val = swig_pg_cdr(head);
+                    Datum key = swig_pg_car(head);
+                    Datum val = swig_pg_cdr(head);
                     if (SWIG_ConvertPtr(key,(void**) &k,
                                     $descriptor(K *), 0) == -1) {
                         $1 = 0;
@@ -174,10 +174,10 @@ namespace std {
                 /* check the first element only */
                 K* k;
                 T* x;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_PG_PAIRP(head)) {
-                    swig_pg_value key = swig_pg_car(head);
-                    swig_pg_value val = swig_pg_cdr(head);
+                    Datum key = swig_pg_car(head);
+                    Datum val = swig_pg_cdr(head);
                     if (SWIG_ConvertPtr(key,(void**) &k,
                                     $descriptor(K *), 0) == -1) {
                         $1 = 0;
@@ -255,12 +255,12 @@ namespace std {
                 std::map< K, T, C >::iterator i = self->find(key);
                 return i != self->end();
             }
-            swig_pg_value keys() {
-                swig_pg_value result = swig_pg_null;
+            Datum keys() {
+                Datum result = swig_pg_null;
                 for (std::map< K, T, C >::reverse_iterator i=self->rbegin();
                                                       i!=self->rend(); ++i) {
                     K* key = new K(i->first);
-                    swig_pg_value k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
+                    Datum k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = swig_pg_make_pair(k,result);
                 }
                 return result;
@@ -279,10 +279,10 @@ namespace std {
                 $1 = std::map< K, T, C >();
             } else if (SWIG_PG_PAIRP($input)) {
                 $1 = std::map< K, T, C >();
-                swig_pg_value alist = $input;
+                Datum alist = $input;
                 while (!SWIG_PG_NULLP(alist)) {
                     T* x;
-                    swig_pg_value entry, *key, *val;
+                    Datum entry, *key, *val;
                     entry = swig_pg_car(alist);
                     if (!SWIG_PG_PAIRP(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
@@ -316,10 +316,10 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 temp = std::map< K, T, C >();
                 $1 = &temp;
-                swig_pg_value alist = $input;
+                Datum alist = $input;
                 while (!SWIG_PG_NULLP(alist)) {
                     T* x;
-                    swig_pg_value entry, *key, *val;
+                    Datum entry, *key, *val;
                     entry = swig_pg_car(alist);
                     if (!SWIG_PG_PAIRP(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
@@ -343,13 +343,13 @@ namespace std {
             }
         }
         %typemap(out) map< K, T, C > {
-            swig_pg_value alist = swig_pg_null;
+            Datum alist = swig_pg_null;
             for (std::map< K, T, C >::reverse_iterator i=$1.rbegin();
                                                   i!=$1.rend(); ++i) {
                 T* val = new T(i->second);
-                swig_pg_value k = CONVERT_TO(i->first);
-                swig_pg_value x = SWIG_NewPointerObj(val,$descriptor(T *), 1);
-                swig_pg_value entry = swig_pg_make_pair(k,x);
+                Datum k = CONVERT_TO(i->first);
+                Datum x = SWIG_NewPointerObj(val,$descriptor(T *), 1);
+                Datum entry = swig_pg_make_pair(k,x);
                 alist = swig_pg_make_pair(entry,alist);
             }
             $result = alist;
@@ -362,10 +362,10 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 // check the first element only
                 T* x;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_PG_PAIRP(head)) {
-                    swig_pg_value key = swig_pg_car(head);
-                    swig_pg_value val = swig_pg_cdr(head);
+                    Datum key = swig_pg_car(head);
+                    Datum val = swig_pg_cdr(head);
                     if (!CHECK(key)) {
                         $1 = 0;
                     } else {
@@ -405,10 +405,10 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 // check the first element only
                 T* x;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_PG_PAIRP(head)) {
-                    swig_pg_value key = swig_pg_car(head);
-                    swig_pg_value val = swig_pg_cdr(head);
+                    Datum key = swig_pg_car(head);
+                    Datum val = swig_pg_cdr(head);
                     if (!CHECK(key)) {
                         $1 = 0;
                     } else {
@@ -485,11 +485,11 @@ namespace std {
                 std::map< K, T, C >::iterator i = self->find(key);
                 return i != self->end();
             }
-            swig_pg_value keys() {
-                swig_pg_value result = swig_pg_null;
+            Datum keys() {
+                Datum result = swig_pg_null;
                 for (std::map< K, T, C >::reverse_iterator i=self->rbegin();
                                                       i!=self->rend(); ++i) {
-                    swig_pg_value k = CONVERT_TO(i->first);
+                    Datum k = CONVERT_TO(i->first);
                     result = swig_pg_make_pair(k,result);
                 }
                 return result;
@@ -505,10 +505,10 @@ namespace std {
                 $1 = std::map< K, T, C >();
             } else if (SWIG_PG_PAIRP($input)) {
                 $1 = std::map< K, T, C >();
-                swig_pg_value alist = $input;
+                Datum alist = $input;
                 while (!SWIG_PG_NULLP(alist)) {
                     K* k;
-                    swig_pg_value entry, *key, *val;
+                    Datum entry, *key, *val;
                     entry = swig_pg_car(alist);
                     if (!SWIG_PG_PAIRP(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
@@ -541,10 +541,10 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 temp = std::map< K, T, C >();
                 $1 = &temp;
-                swig_pg_value alist = $input;
+                Datum alist = $input;
                 while (!SWIG_PG_NULLP(alist)) {
                     K* k;
-                    swig_pg_value entry, *key, *val;
+                    Datum entry, *key, *val;
                     entry = swig_pg_car(alist);
                     if (!SWIG_PG_PAIRP(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
@@ -567,13 +567,13 @@ namespace std {
             }
         }
         %typemap(out) map< K, T, C > {
-            swig_pg_value alist = swig_pg_null;
+            Datum alist = swig_pg_null;
             for (std::map< K, T, C >::reverse_iterator i=$1.rbegin();
                                                   i!=$1.rend(); ++i) {
                 K* key = new K(i->first);
-                swig_pg_value k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
-                swig_pg_value x = CONVERT_TO(i->second);
-                swig_pg_value entry = swig_pg_make_pair(k,x);
+                Datum k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
+                Datum x = CONVERT_TO(i->second);
+                Datum entry = swig_pg_make_pair(k,x);
                 alist = swig_pg_make_pair(entry,alist);
             }
             $result = alist;
@@ -586,10 +586,10 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 // check the first element only
                 K* k;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_PG_PAIRP(head)) {
-                    swig_pg_value key = swig_pg_car(head);
-                    swig_pg_value val = swig_pg_cdr(head);
+                    Datum key = swig_pg_car(head);
+                    Datum val = swig_pg_cdr(head);
                     if (SWIG_ConvertPtr(val,(void **) &k,
                                     $descriptor(K *), 0) == -1) {
                         $1 = 0;
@@ -628,10 +628,10 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 // check the first element only
                 K* k;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_PG_PAIRP(head)) {
-                    swig_pg_value key = swig_pg_car(head);
-                    swig_pg_value val = swig_pg_cdr(head);
+                    Datum key = swig_pg_car(head);
+                    Datum val = swig_pg_cdr(head);
                     if (SWIG_ConvertPtr(val,(void **) &k,
                                     $descriptor(K *), 0) == -1) {
                         $1 = 0;
@@ -707,12 +707,12 @@ namespace std {
                 std::map< K, T, C >::iterator i = self->find(key);
                 return i != self->end();
             }
-            swig_pg_value keys() {
-                swig_pg_value result = swig_pg_null;
+            Datum keys() {
+                Datum result = swig_pg_null;
                 for (std::map< K, T, C >::reverse_iterator i=self->rbegin();
                                                       i!=self->rend(); ++i) {
                     K* key = new K(i->first);
-                    swig_pg_value k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
+                    Datum k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = swig_pg_make_pair(k,result);
                 }
                 return result;
@@ -729,9 +729,9 @@ namespace std {
                 $1 = std::map< K, T, C >();
             } else if (SWIG_PG_PAIRP($input)) {
                 $1 = std::map< K, T, C >();
-                swig_pg_value alist = $input;
+                Datum alist = $input;
                 while (!SWIG_PG_NULLP(alist)) {
-                    swig_pg_value entry, *key, *val;
+                    Datum entry, *key, *val;
                     entry = swig_pg_car(alist);
                     if (!SWIG_PG_PAIRP(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
@@ -767,9 +767,9 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 temp = std::map< K, T, C >();
                 $1 = &temp;
-                swig_pg_value alist = $input;
+                Datum alist = $input;
                 while (!SWIG_PG_NULLP(alist)) {
-                    swig_pg_value entry, *key, *val;
+                    Datum entry, *key, *val;
                     entry = swig_pg_car(alist);
                     if (!SWIG_PG_PAIRP(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
@@ -794,12 +794,12 @@ namespace std {
             }
         }
         %typemap(out) map< K, T, C > {
-            swig_pg_value alist = swig_pg_null;
+            Datum alist = swig_pg_null;
             for (std::map< K, T, C >::reverse_iterator i=$1.rbegin();
                                                   i!=$1.rend(); ++i) {
-                swig_pg_value k = CONVERT_K_TO(i->first);
-                swig_pg_value x = CONVERT_T_TO(i->second);
-                swig_pg_value entry = swig_pg_make_pair(k,x);
+                Datum k = CONVERT_K_TO(i->first);
+                Datum x = CONVERT_T_TO(i->second);
+                Datum entry = swig_pg_make_pair(k,x);
                 alist = swig_pg_make_pair(entry,alist);
             }
             $result = alist;
@@ -811,10 +811,10 @@ namespace std {
                 $1 = 1;
             } else if (SWIG_PG_PAIRP($input)) {
                 // check the first element only
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_PG_PAIRP(head)) {
-                    swig_pg_value key = swig_pg_car(head);
-                    swig_pg_value val = swig_pg_cdr(head);
+                    Datum key = swig_pg_car(head);
+                    Datum val = swig_pg_cdr(head);
                     if (!CHECK_K(key)) {
                         $1 = 0;
                     } else {
@@ -851,10 +851,10 @@ namespace std {
                 $1 = 1;
             } else if (SWIG_PG_PAIRP($input)) {
                 // check the first element only
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_PG_PAIRP(head)) {
-                    swig_pg_value key = swig_pg_car(head);
-                    swig_pg_value val = swig_pg_cdr(head);
+                    Datum key = swig_pg_car(head);
+                    Datum val = swig_pg_cdr(head);
                     if (!CHECK_K(key)) {
                         $1 = 0;
                     } else {
@@ -929,11 +929,11 @@ namespace std {
                 std::map< K, T, C >::iterator i = self->find(key);
                 return i != self->end();
             }
-            swig_pg_value keys() {
-                swig_pg_value result = swig_pg_null;
+            Datum keys() {
+                Datum result = swig_pg_null;
                 for (std::map< K, T, C >::reverse_iterator i=self->rbegin();
                                                       i!=self->rend(); ++i) {
-                    swig_pg_value k = CONVERT_K_TO(i->first);
+                    Datum k = CONVERT_K_TO(i->first);
                     result = swig_pg_make_pair(k,result);
                 }
                 return result;

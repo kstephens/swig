@@ -45,7 +45,7 @@ namespace std {
             if (SWIG_PG_VECTORP($input)) {
                 unsigned int size = SWIG_PG_VEC_SIZE($input);
                 $1 = std::vector<T >(size);
-                swig_pg_value* items = SWIG_PG_VEC_ELS($input);
+                Datum* items = SWIG_PG_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
                     (($1_type &)$1)[i] =
                         *((T*) SWIG_MustGetPtr(items[i],
@@ -55,7 +55,7 @@ namespace std {
             } else if (SWIG_PG_NULLP($input)) {
                 $1 = std::vector<T >();
             } else if (SWIG_PG_PAIRP($input)) {
-                swig_pg_value head, *tail;
+                Datum head, *tail;
                 $1 = std::vector<T >();
                 tail = $input;
                 while (!SWIG_PG_NULLP(tail)) {
@@ -76,7 +76,7 @@ namespace std {
                 unsigned int size = SWIG_PG_VEC_SIZE($input);
                 temp = std::vector<T >(size);
                 $1 = &temp;
-                swig_pg_value* items = SWIG_PG_VEC_ELS($input);
+                Datum* items = SWIG_PG_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
                     temp[i] = *((T*) SWIG_MustGetPtr(items[i],
                                                      $descriptor(T *),
@@ -88,7 +88,7 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 temp = std::vector<T >();
                 $1 = &temp;
-                swig_pg_value head, *tail;
+                Datum head, *tail;
                 tail = $input;
                 while (!SWIG_PG_NULLP(tail)) {
                     head = swig_pg_car(tail);
@@ -103,7 +103,7 @@ namespace std {
         }
         %typemap(out) vector<T> {
             $result = swig_pg_make_vector($1.size(),swig_pg_undefined);
-            swig_pg_value* els = SWIG_PG_VEC_ELS($result);
+            Datum* els = SWIG_PG_VEC_ELS($result);
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* x = new T((($1_type &)$1)[i]);
                 els[i] = SWIG_NewPointerObj(x,$descriptor(T *), 1);
@@ -119,7 +119,7 @@ namespace std {
                 } else {
                     /* check the first element only */
                     T* x;
-                    swig_pg_value* items = SWIG_PG_VEC_ELS($input);
+                    Datum* items = SWIG_PG_VEC_ELS($input);
                     if (SWIG_ConvertPtr(items[0],(void**) &x,
                                     $descriptor(T *), 0) != -1)
                         $1 = 1;
@@ -132,7 +132,7 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 /* check the first element only */
                 T* x;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_ConvertPtr(head,(void**) &x,
                                 $descriptor(T *), 0) != -1)
                     $1 = 1;
@@ -159,7 +159,7 @@ namespace std {
                 } else {
                     /* check the first element only */
                     T* x;
-                    swig_pg_value* items = SWIG_PG_VEC_ELS($input);
+                    Datum* items = SWIG_PG_VEC_ELS($input);
                     if (SWIG_ConvertPtr(items[0],(void**) &x,
                                     $descriptor(T *), 0) != -1)
                         $1 = 1;
@@ -172,7 +172,7 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 /* check the first element only */
                 T* x;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 if (SWIG_ConvertPtr(head,(void**) &x,
                                 $descriptor(T *), 0) != -1)
                     $1 = 1;
@@ -245,19 +245,19 @@ namespace std {
             if (SWIG_PG_VECTORP($input)) {
                 unsigned int size = SWIG_PG_VEC_SIZE($input);
                 $1 = std::vector<T >(size);
-                swig_pg_value* items = SWIG_PG_VEC_ELS($input);
+                Datum* items = SWIG_PG_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
-                    swig_pg_value o = items[i];
+                    Datum o = items[i];
                     if (CHECK(o))
                         (($1_type &)$1)[i] = (T)(CONVERT_FROM(o));
                     else
-                        swig_pg_wrong_type(FUNC_NAME, "vector<" #T ">",
+                        swig_pg_wrong_type("vector<" #T ">",
                                           $argnum - 1, argc, argv);
                 }
             } else if (SWIG_PG_NULLP($input)) {
                 $1 = std::vector<T >();
             } else if (SWIG_PG_PAIRP($input)) {
-                swig_pg_value head, *tail;
+                Datum head, *tail;
                 $1 = std::vector<T >();
                 tail = $input;
                 while (!SWIG_PG_NULLP(tail)) {
@@ -266,7 +266,7 @@ namespace std {
                     if (CHECK(head))
                         $1.push_back((T)(CONVERT_FROM(head)));
                     else
-                        swig_pg_wrong_type(FUNC_NAME, "vector<" #T ">",
+                        swig_pg_wrong_type("vector<" #T ">",
                                           $argnum - 1, argc, argv);
                 }
             } else {
@@ -280,13 +280,13 @@ namespace std {
                 unsigned int size = SWIG_PG_VEC_SIZE($input);
                 temp = std::vector<T >(size);
                 $1 = &temp;
-                swig_pg_value* items = SWIG_PG_VEC_ELS($input);
+                Datum* items = SWIG_PG_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
-                    swig_pg_value o = items[i];
+                    Datum o = items[i];
                     if (CHECK(o))
                         temp[i] = (T)(CONVERT_FROM(o));
                     else
-                        swig_pg_wrong_type(FUNC_NAME, "vector<" #T ">",
+                        swig_pg_wrong_type("vector<" #T ">",
                                           $argnum - 1, argc, argv);
                 }
             } else if (SWIG_PG_NULLP($input)) {
@@ -295,7 +295,7 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 temp = std::vector<T >();
                 $1 = &temp;
-                swig_pg_value head, *tail;
+                Datum head, *tail;
                 tail = $input;
                 while (!SWIG_PG_NULLP(tail)) {
                     head = swig_pg_car(tail);
@@ -303,7 +303,7 @@ namespace std {
                     if (CHECK(head))
                         temp.push_back((T)(CONVERT_FROM(head)));
                     else
-                        swig_pg_wrong_type(FUNC_NAME, "vector<" #T ">",
+                        swig_pg_wrong_type("vector<" #T ">",
                                           $argnum - 1, argc, argv);
                 }
             } else {
@@ -312,7 +312,7 @@ namespace std {
         }
         %typemap(out) vector<T> {
             $result = swig_pg_make_vector($1.size(),swig_pg_undefined);
-            swig_pg_value* els = SWIG_PG_VEC_ELS($result);
+            Datum* els = SWIG_PG_VEC_ELS($result);
             for (unsigned int i=0; i<$1.size(); i++)
                 els[i] = CONVERT_TO((($1_type &)$1)[i]);
         }
@@ -326,7 +326,7 @@ namespace std {
                 } else {
                     /* check the first element only */
                     T* x;
-                    swig_pg_value* items = SWIG_PG_VEC_ELS($input);
+                    Datum* items = SWIG_PG_VEC_ELS($input);
                     $1 = CHECK(items[0]) ? 1 : 0;
                 }
             } else if (SWIG_PG_NULLP($input)) {
@@ -335,7 +335,7 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 /* check the first element only */
                 T* x;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 $1 = CHECK(head) ? 1 : 0;
             } else {
                 /* wrapped vector? */
@@ -355,7 +355,7 @@ namespace std {
                 } else {
                     /* check the first element only */
                     T* x;
-                    swig_pg_value* items = SWIG_PG_VEC_ELS($input);
+                    Datum* items = SWIG_PG_VEC_ELS($input);
                     $1 = CHECK(items[0]) ? 1 : 0;
                 }
             } else if (SWIG_PG_NULLP($input)) {
@@ -364,7 +364,7 @@ namespace std {
             } else if (SWIG_PG_PAIRP($input)) {
                 /* check the first element only */
                 T* x;
-                swig_pg_value head = swig_pg_car($input);
+                Datum head = swig_pg_car($input);
                 $1 = CHECK(head) ? 1 : 0;
             } else {
                 /* wrapped vector? */
