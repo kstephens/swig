@@ -19,6 +19,15 @@ extern "C" {
 
 PG_MODULE_MAGIC;
 
+/* Common SWIG API */
+
+#define swig_pg_void       ((Datum) 0)
+#define swig_pg_true       BoolGetDatum(1)
+#define swig_pg_false      BoolGetDatum(0)
+#define swig_pg_malloc(X)  palloc(X)
+#define swig_pg_free(X)    pfree(X)
+#define swig_pg_value      Datum
+
 /* !!! : PLACEHOLDERS */
 #define swig_pg_UNIMPLEMENTED swig_pg_void
 #define swig_pg_UNUSED ((void) 0)
@@ -63,14 +72,6 @@ struct swig_pg_runtime_data {
 };
 */
 
-/* Common SWIG API */
-
-#define swig_pg_void       ((Datum) 0)
-#define swig_pg_true       BoolGetDatum(1)
-#define swig_pg_false      BoolGetDatum(0)
-#define swig_pg_malloc(X)  palloc(X)
-#define swig_pg_free(X)    pfree(X)
-#define swig_pg_value      Datum
 
 // !!! : Hack
 // https://cpp.hotexamples.com/examples/-/-/PG_RETURN_CSTRING/cpp-pg_return_cstring-function-examples.html
