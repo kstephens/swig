@@ -345,7 +345,7 @@ public:
         String   *pg_type = Getattr(p, "tmap:pg_type");
         if ( i > 0 )
           Printf(f_pg_sql, ",");
-        Printf(f_pg_sql, "\n    %s_ %s", pname, pg_type);
+        Printf(f_pg_sql, "\n    \"%s\" %s", pname, pg_type);
       	p = Getattr(p, "tmap:in:next");
       }
       Printf(f_pg_sql, "\n");
