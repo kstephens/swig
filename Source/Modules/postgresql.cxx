@@ -22,6 +22,7 @@ PostgreSQL Options (available with -postgresql)\n\
      -prefix <name>                - Set a prefix <name> to be prepended to all names\n\
      -extension-name    <name>     - Set the name of the PG extension: default module name\n\
      -extension-version <version>  - Set the version of the PG extension\n\
+     -extension-schema  <schema>   - Set the schema to use\n\
 ";
 
 static String *fieldnames_tab = 0;
@@ -37,6 +38,8 @@ static String *load_libraries = NULL;
 static String *module = 0;
 static String *extension_name = 0;
 static String *extension_version = 0;
+static String *extension_schema = 0;
+static String *extension_schema_prefix = 0;
 static const char *postgresql_path = "postgresql";
 static String *init_func_def = 0;
 
@@ -101,6 +104,15 @@ public:
     } else {
       Swig_arg_error();
     }
+  } else if (strcmp(argv[i], "-extension-schema") == 0) {
+    if (argv[i + 1]) {
+      extension_schema = NewString(argv[i + 1]);
+      Swig_mark_arg(i);
+      Swig_mark_arg(i + 1);
+      i++;
+    } else {
+      Swig_arg_error();
+    }
 	} else if (strcmp(argv[i], "-declaremodule") == 0) {
 	  declaremodule = true;
 	  Swig_mark_arg(i);
@@ -123,6 +135,7 @@ public:
 
     if ( ! extension_name ) extension_name = module;
     if ( ! extension_version ) extension_version = NewString("0.0.1");
+    extension_schema_prefix = NewStringf(extension_schema ? "\"%s\"." : "", extension_schema);
 
     // If a prefix has been specified make sure it ends in a '_' (not actually used!)
     if (prefix) {
@@ -199,9 +212,7 @@ public:
     f_pg_make     = NewFile(outfile_pg_make,    "w", SWIG_output_files());
     f_pg_test     = NewFile(outfile_pg_test,    "w", SWIG_output_files());
 
-    generate_file(n, f_pg_sql,
-      "-- -----------------------------------------------------\n"
-      "-- $extension_name--$extension_version.sql:\n\n");
+    begin_pg_sql(n);
 
     Printf(f_runtime, "\n");
     Printf(f_runtime, "static const char * swig_pg_extension_name_cstr    = \"%s\";\n", extension_name);
@@ -241,12 +252,10 @@ public:
       Printf(f_init, "}\n");
     }
 
-    generate_file(n, f_pg_sql,
-      "-- -----------------------------------------------------\n");
-
     create_pg_control(n);
     create_pg_make(n);
     create_pg_test(n);
+    end_pg_sql(n);
 
     /* Close all of the files */
     Dump(f_runtime, f_begin);
@@ -274,36 +283,53 @@ public:
    * Generate control and make files for the module:
    */
 
-  int generate_file(Node *n, String *f, const char *str) {
+  void generate_file(Node *n, String *f, const char *str) {
     String* tmpl = NewString(str);
-    Replaceall(tmpl, "$extension_name"   , extension_name);
-    Replaceall(tmpl, "$extension_version", extension_version);
+    Replaceall(tmpl, "${extension_name}"   , extension_name);
+    Replaceall(tmpl, "${extension_version}", extension_version);
+    if ( extension_schema ) {
+      Replaceall(tmpl, "${extension_schema}", extension_schema);
+      Replaceall(tmpl, "${extension_schema_prefix}", extension_schema_prefix);
+    }
     Printv(f, tmpl, NIL);
     Delete(tmpl);
-    return 0;
   }
 
-  int create_pg_control(Node *n) {
-    return generate_file(n, f_pg_control,
+  void begin_pg_sql(Node *n) {
+    generate_file(n, f_pg_sql,
+      "-- -----------------------------------------------------\n"
+      "-- ${extension_name}--${extension_version}.sql:\n\n");
+    if ( extension_schema ) {
+      Printf(f_pg_sql, "CREATE SCHEMA IF NOT EXISTS \"%s\";\n\n", extension_schema);
+    }
+  }
+
+  void end_pg_sql(Node *n) {
+    generate_file(n, f_pg_sql,
+      "-- -----------------------------------------------------\n");
+  }
+
+  void create_pg_control(Node *n) {
+    generate_file(n, f_pg_control,
       "########################################################\n"
-      "# $extension_name.control:\n"
+      "# ${extension_name}.control:\n"
       "\n"
-      "comment           = '$extension_name extension'\n"
-      "default_version   = '$extension_version'\n"
+      "comment           = '${extension_name} extension'\n"
+      "default_version   = '${extension_version}'\n"
       "relocatable       = true\n"
       "\n"
       "########################################################\n");
   }
 
-  int create_pg_make(Node *n) {
-    return generate_file(n, f_pg_make,
+  void create_pg_make(Node *n) {
+    generate_file(n, f_pg_make,
       "########################################################\n"
-      "# $extension_name.make:\n"
+      "# ${extension_name}.make:\n"
       "\n"
-      "EXTENSION   = $extension_name\n"
-      "DATA        = $extension_name--$extension_version.sql\n"
-      "# REGRESS     = $extension_name_test\n"
-      "MODULES     = $extension_name\n"
+      "EXTENSION   = ${extension_name}\n"
+      "DATA        = ${extension_name}--${extension_version}.sql\n"
+      "# REGRESS     = ${extension_name}_test\n"
+      "MODULES     = ${extension_name}\n"
       "PG_CFLAGS  += -Isrc\n"
       "PG_CONFIG   = pg_config\n"
       "PGXS       := $(shell $(PG_CONFIG) --pgxs)\n"
@@ -312,13 +338,13 @@ public:
       "########################################################\n");
   }
 
-  int create_pg_test(Node *n) {
-    return generate_file(n, f_pg_test,
+  void create_pg_test(Node *n) {
+    generate_file(n, f_pg_test,
       "-- -----------------------------------------------------\n"
-      "-- $extension_name_test.sql:\n"
+      "-- ${extension_name}_test.sql:\n"
       "\n"
-      "DROP EXTENSION IF EXISTS $extension_name;\n"
-      "CREATE EXTENSION $extension_name;\n"
+      "DROP EXTENSION IF EXISTS ${extension_name};\n"
+      "CREATE EXTENSION ${extension_name};\n"
       "\n"
       "-- -----------------------------------------------------\n");
   }
@@ -355,7 +381,7 @@ public:
     String *extension_dir = NewString("");
     Printv(extension_dir, "$libdir/", module, NIL);
 
-    Printf(f_pg_sql, "CREATE FUNCTION %s (", pg_name, NIL);
+    Printf(f_pg_sql, "CREATE FUNCTION %s%s (", extension_schema_prefix, pg_name, NIL);
     if ( l )  {
       Parm *p;
       int i = 0;
