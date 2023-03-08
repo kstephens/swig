@@ -48,6 +48,7 @@ static File *f_init = 0;
 static File *f_pg_sql = 0;
 static File *f_pg_control = 0;
 static File *f_pg_make = 0;
+static File *f_pg_test = 0;
 
 // Used for garbage collection
 static int exporting_destructor = 0;
@@ -186,14 +187,21 @@ public:
     if ( ! extension_name )     extension_name = module;
     if ( ! extension_version )  extension_version = NewString("0.0.1");
 
-    String *outfile_pg_sql      = outputFileForSuffix("");
-    Printf(outfile_pg_sql,      "--%s.sql", extension_version);
-    String *outfile_pg_control  = outputFileForSuffix(".control");
-    String *outfile_pg_make     = outputFileForSuffix(".make");
+    String *outfile_pg_sql      = outputFileForSuffix(".", "");
+    Printv(outfile_pg_sql,      "--", extension_version, ".sql", NIL);
+    String *outfile_pg_control  = outputFileForSuffix(".", ".control");
+    String *outfile_pg_make     = outputFileForSuffix(".", ".make");
+    String *outfile_pg_test     = outputFileForSuffix("sql", "");
+    Printv(outfile_pg_test,     "_test.sql", NIL);
 
     f_pg_sql      = NewFile(outfile_pg_sql,     "w", SWIG_output_files());
     f_pg_control  = NewFile(outfile_pg_control, "w", SWIG_output_files());
     f_pg_make     = NewFile(outfile_pg_make,    "w", SWIG_output_files());
+    f_pg_test     = NewFile(outfile_pg_test,    "w", SWIG_output_files());
+
+    generate_file(n, f_pg_sql,
+      "-- -----------------------------------------------------\n"
+      "-- $extension_name--$extension_version.sql:\n\n");
 
     Printf(f_runtime, "\n");
     Printf(f_runtime, "static const char * swig_pg_extension_name_cstr    = \"%s\";\n", extension_name);
@@ -233,8 +241,12 @@ public:
       Printf(f_init, "}\n");
     }
 
+    generate_file(n, f_pg_sql,
+      "-- -----------------------------------------------------\n");
+
     create_pg_control(n);
     create_pg_make(n);
+    create_pg_test(n);
 
     /* Close all of the files */
     Dump(f_runtime, f_begin);
@@ -250,19 +262,29 @@ public:
     Delete(f_pg_sql);
     Delete(f_pg_control);
     Delete(f_pg_make);
+    Delete(f_pg_test);
     return SWIG_OK;
   }
 
-  String *outputFileForSuffix(const char *suffix) {
-    return NewStringf("%s%s%s", SWIG_output_directory(), extension_name, suffix);
+  String *outputFileForSuffix(const char* dir, const char *suffix) {
+    return NewStringf("%s%s/%s%s", SWIG_output_directory(), dir, extension_name, suffix);
   }
 
   /* ------------------------------------------------------------
    * Generate control and make files for the module:
    */
 
+  int generate_file(Node *n, String *f, const char *str) {
+    String* tmpl = NewString(str);
+    Replaceall(tmpl, "$extension_name"   , extension_name);
+    Replaceall(tmpl, "$extension_version", extension_version);
+    Printv(f, tmpl, NIL);
+    Delete(tmpl);
+    return 0;
+  }
+
   int create_pg_control(Node *n) {
-    String* tmpl = NewString(
+    return generate_file(n, f_pg_control,
       "########################################################\n"
       "# $extension_name.control:\n"
       "\n"
@@ -270,34 +292,35 @@ public:
       "default_version   = '$extension_version'\n"
       "relocatable       = true\n"
       "\n"
-      "########################################################\n"
-      "\n");
-    Replaceall(tmpl, "$extension_name"   , extension_name);
-    Replaceall(tmpl, "$extension_version", extension_version);
-    Printv(f_pg_control, tmpl, NIL);
-    return 0;
+      "########################################################\n");
   }
 
   int create_pg_make(Node *n) {
-    String* tmpl = NewString(
+    return generate_file(n, f_pg_make,
       "########################################################\n"
       "# $extension_name.make:\n"
       "\n"
       "EXTENSION   = $extension_name\n"
       "DATA        = $extension_name--$extension_version.sql\n"
-      "# REGRESS   = $extension_name_test\n"
+      "# REGRESS     = $extension_name_test\n"
       "MODULES     = $extension_name\n"
       "PG_CFLAGS  += -Isrc\n"
       "PG_CONFIG   = pg_config\n"
       "PGXS       := $(shell $(PG_CONFIG) --pgxs)\n"
       "include $(PGXS)\n"
       "\n"
-      "########################################################\n"
-      "\n");
-    Replaceall(tmpl, "$extension_name"   , extension_name);
-    Replaceall(tmpl, "$extension_version", extension_version);
-    Printv(f_pg_make, tmpl, NIL);
-    return 0;
+      "########################################################\n");
+  }
+
+  int create_pg_test(Node *n) {
+    return generate_file(n, f_pg_test,
+      "-- -----------------------------------------------------\n"
+      "-- $extension_name_test.sql:\n"
+      "\n"
+      "DROP EXTENSION IF EXISTS $extension_name;\n"
+      "CREATE EXTENSION $extension_name;\n"
+      "\n"
+      "-- -----------------------------------------------------\n");
   }
 
   /* ------------------------------------------------------------
@@ -453,6 +476,7 @@ public:
       SwigType *pt = Getattr(p, "type");
       String *ln = Getattr(p, "lname");
 
+      // ??? : TODO use PG_ARGISNULL(n) to check for nulls;
       // Produce names of source and target
       Clear(target);
       Clear(arg);
@@ -738,7 +762,6 @@ public:
     if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 1)) {
       temp = Copy(rvalue);
       Clear(rvalue);
-      // !!!: DOES THIS QUOTE THE STRING CORRECTLY?
       Printv(rvalue, "\"", temp, "\"", NIL);
     }
     if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 0)) {
@@ -756,10 +779,8 @@ public:
       Printf(f_header, "static %s = ", SwigType_lstr(type, var_name));
       bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
       if ((SwigType_type(type) == T_STRING)) {
-      // !!!: DOES THIS QUOTE THE STRING CORRECTLY?
 	Printf(f_header, "\"%s\";\n", value);
       } else if (SwigType_type(type) == T_CHAR && !is_enum_item) {
-      // !!!: DOES THIS QUOTE THE STRING CORRECTLY?
 	Printf(f_header, "\'%s\';\n", value);
       } else {
 	Printf(f_header, "%s;\n", value);
