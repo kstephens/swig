@@ -11,8 +11,8 @@
 %runtime "postgresql_run.swg"
 
 /* Definitions */
-#define SWIG_malloc(size) swig_malloc(size, FUNC_NAME)
-#define SWIG_free(mem) free(mem)
+#define SWIG_malloc(size)  swig_pg_malloc(size)
+#define SWIG_free(mem)     swig_pg_free(mem)
 
 #define SWIG_convert_short(o)					\
   SWIG_convert_integer(o, - (1 << (8 * sizeof(short) - 1)),	\
