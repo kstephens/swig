@@ -29,27 +29,24 @@ namespace std {
     %typemap(typecheck) const string & = char *;
 
     %typemap(in) string {
-        if (SWIG_PG_STRINGP($input))
-            $1.assign(SWIG_PG_STR_VAL($input));
-        else
-            SWIG_exception(SWIG_TypeError, "string expected");
+        if ( ! swig_pg_is_string($input) )
+            swig_pg_wrong_type("expected string : %s : arg %d", $symname, $argnum);
+        $1.assign(DatumGetCString($input));
     }
 
     %typemap(in) const string & ($*1_ltype temp) {
-        if (SWIG_PG_STRINGP($input)) {
-            temp.assign(SWIG_PG_STR_VAL($input));
-            $1 = &temp;
-        } else {
-            SWIG_exception(SWIG_TypeError, "string expected");
-        }
+        if ( ! swig_pg_is_string($input) )
+            swig_pg_wrong_type("expected string : %s : arg %d", $symname, $argnum);
+        temp.assign(DatumGetCString($input));
+        $1 = &temp;
     }
 
     %typemap(out) string {
-        $result = swig_pg_make_string($1.c_str());
+        $result = swig_CStringGetDatum($1.c_str());
     }
 
     %typemap(out) const string & {
-        $result = swig_pg_make_string($1->c_str());
+        $result = swig_CStringGetDatum($1->c_str());
     }
 
     %typemap(throws) string {
