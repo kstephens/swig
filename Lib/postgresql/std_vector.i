@@ -104,7 +104,7 @@ namespace std {
         %typemap(out) vector<T> {
             $result = swig_pg_make_vector($1.size(),swig_pg_undefined);
             Datum* els = SWIG_PG_VEC_ELS($result);
-            for (unsigned int i=0; i<$1.size(); i++) {
+            for (size_t i = 0; i < $1.size(); i ++) {
                 T* x = new T((($1_type &)$1)[i]);
                 els[i] = SWIG_NewPointerObj(x,$descriptor(T *), 1);
             }
@@ -197,19 +197,19 @@ namespace std {
         typedef value_type& reference;
         typedef const value_type& const_reference;
 
-        vector(unsigned int size = 0);
-        vector(unsigned int size, const T& value);
+        vector(size_t size = 0);
+        vector(size_t size, const T& value);
         vector(const vector& other);
 
         %rename(length) size;
-        unsigned int size() const;
-        %rename("empty?") empty;
+        size_t size() const;
+        %rename("emptyQ") empty;
         bool empty() const;
-        %rename("clear!") clear;
+        %rename("clearE") clear;
         void clear();
-        %rename("set!") set;
-        %rename("pop!") pop;
-        %rename("push!") push_back;
+        %rename("setE") set;
+        %rename("popE") pop;
+        %rename("pushE") push_back;
         void push_back(const T& x);
         %extend {
             T pop() throw (std::out_of_range) {
@@ -219,15 +219,15 @@ namespace std {
                 self->pop_back();
                 return x;
             }
-            T& ref(int i) throw (std::out_of_range) {
-                int size = int(self->size());
+            T& ref(size_t i) throw (std::out_of_range) {
+                size_t size = size_t(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void set(int i, const T& x) throw (std::out_of_range) {
-                int size = int(self->size());
+            void set(size_t i, const T& x) throw (std::out_of_range) {
+                size_t size = size_t(self->size());
                 if (i>=0 && i<size)
                     (*self)[i] = x;
                 else
@@ -313,7 +313,7 @@ namespace std {
         %typemap(out) vector<T> {
             $result = swig_pg_make_vector($1.size(),swig_pg_undefined);
             Datum* els = SWIG_PG_VEC_ELS($result);
-            for (unsigned int i=0; i<$1.size(); i++)
+            for (size_t i=0; i<$1.size(); i++)
                 els[i] = CONVERT_TO((($1_type &)$1)[i]);
         }
         %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
@@ -382,19 +382,19 @@ namespace std {
         typedef value_type& reference;
         typedef const value_type& const_reference;
 
-        vector(unsigned int size = 0);
-        vector(unsigned int size, const T& value);
+        vector(size_t size = 0);
+        vector(size_t size, const T& value);
         vector(const vector& other);
 
         %rename(length) size;
-        unsigned int size() const;
-        %rename("empty?") empty;
+        size_t size() const;
+        %rename("emptyQ") empty;
         bool empty() const;
-        %rename("clear!") clear;
+        %rename("clearE") clear;
         void clear();
-        %rename("set!") set;
-        %rename("pop!") pop;
-        %rename("push!") push_back;
+        %rename("setE") set;
+        %rename("popE") pop;
+        %rename("pushE") push_back;
         void push_back(T x);
         %extend {
             T pop() throw (std::out_of_range) {
