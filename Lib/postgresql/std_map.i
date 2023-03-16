@@ -957,10 +957,10 @@ namespace std {
                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_key(unsigned long,SWIG_PG_INTP,
                               SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_key(double,SWIG_PG_REALP,
-                              swig_pg_real_to_double,swig_pg_make_double);
-    specialize_std_map_on_key(float,SWIG_PG_REALP,
-                              swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_map_on_key(double,swig_pg_is_float,
+                              DatumGetFloat8,Float8GetDatum);
+    specialize_std_map_on_key(float,swig_pg_is_float,
+                              DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_key(std::string,SWIG_PG_STRINGP,
                               swig_scm_to_string,swig_make_string);
 
@@ -978,10 +978,10 @@ namespace std {
                                 SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_value(unsigned long,SWIG_PG_INTP,
                                 SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_value(double,SWIG_PG_REALP,
-                                swig_pg_real_to_double,swig_pg_make_double);
-    specialize_std_map_on_value(float,SWIG_PG_REALP,
-                                swig_pg_real_to_double,swig_pg_make_double);
+    specialize_std_map_on_value(double,swig_pg_is_float,
+                                DatumGetFloat8,Float8GetDatum);
+    specialize_std_map_on_value(float,swig_pg_is_float,
+                                DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_value(std::string,SWIG_PG_STRINGP,
                                 swig_scm_to_string,swig_make_string);
 
@@ -1015,12 +1015,12 @@ namespace std {
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_both(bool,SWIG_PG_BOOLP,
                                SWIG_PG_TRUEP,swig_make_boolean,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(bool,SWIG_PG_BOOLP,
                                SWIG_PG_TRUEP,swig_make_boolean,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(bool,SWIG_PG_BOOLP,
                                SWIG_PG_TRUEP,swig_make_boolean,
                                std::string,SWIG_PG_STRINGP,
@@ -1055,12 +1055,12 @@ namespace std {
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_both(int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
                                std::string,SWIG_PG_STRINGP,
@@ -1095,12 +1095,12 @@ namespace std {
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_both(short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
                                std::string,SWIG_PG_STRINGP,
@@ -1135,12 +1135,12 @@ namespace std {
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_both(long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
                                std::string,SWIG_PG_STRINGP,
@@ -1175,12 +1175,12 @@ namespace std {
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_both(unsigned int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(unsigned int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(unsigned int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
                                std::string,SWIG_PG_STRINGP,
@@ -1215,12 +1215,12 @@ namespace std {
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_both(unsigned short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(unsigned short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(unsigned short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
                                std::string,SWIG_PG_STRINGP,
@@ -1255,94 +1255,94 @@ namespace std {
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_both(unsigned long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(unsigned long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(unsigned long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value,
                                std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                bool,SWIG_PG_BOOLP,
                                SWIG_PG_TRUEP,swig_make_boolean);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                unsigned int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                unsigned short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                unsigned long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
-    specialize_std_map_on_both(double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
+    specialize_std_map_on_both(double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                bool,SWIG_PG_BOOLP,
                                SWIG_PG_TRUEP,swig_make_boolean);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                unsigned int,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                unsigned short,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                unsigned long,SWIG_PG_INTP,
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
-    specialize_std_map_on_both(float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double,
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
+    specialize_std_map_on_both(float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum,
                                std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string);
     specialize_std_map_on_both(std::string,SWIG_PG_STRINGP,
@@ -1375,12 +1375,12 @@ namespace std {
                                SWIG_PG_INT_VAL,swig_pg_make_integer_value);
     specialize_std_map_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               double,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               double,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
-                               float,SWIG_PG_REALP,
-                               swig_pg_real_to_double,swig_pg_make_double);
+                               float,swig_pg_is_float,
+                               DatumGetFloat8,Float8GetDatum);
     specialize_std_map_on_both(std::string,SWIG_PG_STRINGP,
                                swig_scm_to_string,swig_make_string,
                                std::string,SWIG_PG_STRINGP,

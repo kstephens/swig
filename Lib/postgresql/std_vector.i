@@ -422,6 +422,7 @@ namespace std {
     };
     %enddef
 
+    // See typemaps.i
     specialize_std_vector(bool,SWIG_PG_BOOLP,SWIG_PG_TRUEP,\
                           swig_make_boolean);
     specialize_std_vector(char,SWIG_PG_INTP,SWIG_PG_INT_VAL,\
@@ -440,10 +441,10 @@ namespace std {
                           swig_pg_make_integer_value);
     specialize_std_vector(unsigned long,SWIG_PG_INTP,SWIG_PG_INT_VAL,\
                           swig_pg_make_integer_value);
-    specialize_std_vector(float,SWIG_PG_REALP,swig_pg_real_to_double,\
-                          swig_pg_make_double);
-    specialize_std_vector(double,SWIG_PG_REALP,swig_pg_real_to_double,\
-                          swig_pg_make_double);
+    specialize_std_vector(float,swig_pg_is_float,DatumGetFloat8,\
+                          Float8GetDatum);
+    specialize_std_vector(double,swig_pg_is_float,DatumGetFloat8,\
+                          Float8GetDatum);
     specialize_std_vector(std::string,SWIG_PG_STRINGP,swig_scm_to_string,\
                           swig_make_string);
 

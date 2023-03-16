@@ -154,6 +154,24 @@ static int swig_DatumGetChar(Datum d) {
     PG_RETURN_VOID();
   }
 }
+// !!! PLACEHOLDERS : generated .sql defines strict - probably dont need these checks.
+static int swig_pg_is_bool(Datum d) {
+  // TODO:
+  return 1;
+}
+static int swig_pg_is_integer(Datum d) {
+  // TODO:
+  return 1;
+}
+static int swig_pg_is_float(Datum d) {
+  // TODO:
+  return 1;
+}
+static int swig_pg_is_string(Datum d) {
+  // TODO:
+  return 1;
+}
+
 #define swig_DatumGetUChar swig_DatumGetChar
 #define swig_DatumGetVoid(...) ((void) __VA_ARGS__)
 #define swig_VoidGetDatum(...) swig_pg_void

@@ -244,22 +244,22 @@ SIMPLE_MAP(char, SWIG_PG_CHARP,
 SIMPLE_MAP(unsigned char, SWIG_PG_CHARP,
      swig_DatumGetUChar, swig_UCharGetDatum,
      "CHAR(1)", "PG_RETURN_CHAR($result)");
-SIMPLE_MAP(short, SWIG_is_integer,
+SIMPLE_MAP(short, swig_pg_is_integer,
      DatumGetInt16, Int16GetDatum,
      "SMALLINT", "PG_RETURN_INT16($result)");
 SIMPLE_MAP(unsigned short, SWIG_is_unsigned_integer,
      DatumGetUInt16, UInt32GetDatum,
      "INTEGER", "PG_RETURN_UINT16($result)");
-SIMPLE_MAP(int, SWIG_is_integer,
+SIMPLE_MAP(int, swig_pg_is_integer,
      DatumGetInt32, Int32GetDatum,
      "INTEGER", "PG_RETURN_INT32($result)");
 SIMPLE_MAP(unsigned int, SWIG_is_unsigned_integer,
      DatumGetUInt32, UInt32GetDatum,
      "BIGINT", "PG_RETURN_UINT32($result)");
-SIMPLE_MAP(long, SWIG_is_integer,
+SIMPLE_MAP(long, swig_pg_is_integer,
      DatumGetInt64, Int64GetDatum,
      "BIGINT", "PG_RETURN_INT64($result)");
-SIMPLE_MAP(ptrdiff_t, SWIG_is_integer,
+SIMPLE_MAP(ptrdiff_t, swig_pg_is_integer,
      DatumGetInt64, Int64GetDatum,
      "BIGINT", "PG_RETURN_INT64($result)");
 SIMPLE_MAP(unsigned long, SWIG_is_unsigned_integer,
@@ -268,10 +268,10 @@ SIMPLE_MAP(unsigned long, SWIG_is_unsigned_integer,
 SIMPLE_MAP(size_t, SWIG_is_unsigned_integer,
      DatumGetUInt64, UInt64GetDatum,
      "BIGINT", "PG_RETURN_UINT64($result)");
-SIMPLE_MAP(float, SWIG_PG_REALP,
+SIMPLE_MAP(float, swig_pg_is_float,
      DatumGetFloat4, Float4GetDatum,
      "FLOAT4", "PG_RETURN_FLOAT4($result)");
-SIMPLE_MAP(double, SWIG_PG_REALP,
+SIMPLE_MAP(double, swig_pg_is_float,
      DatumGetFloat8, Float8GetDatum,
      "FLOAT8", "PG_RETURN_FLOAT8($result)");
 
@@ -306,11 +306,11 @@ REF_MAP(char, SWIG_PG_CHARP, SWIG_PG_CHAR_VAL,
 	   swig_pg_make_character, character);
 REF_MAP(unsigned char, SWIG_PG_CHARP, SWIG_PG_CHAR_VAL,
 	   swig_pg_make_character, character);
-REF_MAP(int, SWIG_is_integer, SWIG_convert_int,
+REF_MAP(int, swig_pg_is_integer, SWIG_convert_int,
 	   swig_pg_make_integer_value, integer);
-REF_MAP(short, SWIG_is_integer, SWIG_convert_short,
+REF_MAP(short, swig_pg_is_integer, SWIG_convert_short,
 	   swig_pg_make_integer_value, integer);
-REF_MAP(long, SWIG_is_integer, SWIG_convert_long,
+REF_MAP(long, swig_pg_is_integer, SWIG_convert_long,
 	   swig_pg_make_integer_value, integer);
 REF_MAP(unsigned int, SWIG_is_unsigned_integer, SWIG_convert_unsigned_int,
 	   swig_pg_make_integer_value_from_unsigned, integer);
@@ -318,10 +318,10 @@ REF_MAP(unsigned short, SWIG_is_unsigned_integer, SWIG_convert_unsigned_short,
 	   swig_pg_make_integer_value_from_unsigned, integer);
 REF_MAP(unsigned long, SWIG_is_unsigned_integer, SWIG_convert_unsigned_long,
 	   swig_pg_make_integer_value_from_unsigned, integer);
-REF_MAP(float, SWIG_PG_REALP, swig_pg_real_to_double,
-	   swig_pg_make_double, real);
-REF_MAP(double, SWIG_PG_REALP, swig_pg_real_to_double,
-	   swig_pg_make_double, real);
+REF_MAP(float, swig_pg_is_float, DatumGetFloat8,
+	   Float8GetDatum, real);
+REF_MAP(double, swig_pg_is_float, DatumGetFloat8,
+	   Float8GetDatum, real);
 
 %typemap(throws) char * {
   swig_pg_signal_error("%s: %s", FUNC_NAME, $1);
@@ -362,27 +362,27 @@ REF_MAP(double, SWIG_PG_REALP, swig_pg_real_to_double,
 	 const long long &, const unsigned long long &,
 	 enum SWIGTYPE
 {
-  $1 = (SWIG_is_integer($input)) ? 1 : 0;
+  $1 = swig_pg_is_integer($input);
 }
 
 %typecheck(SWIG_TYPECHECK_BOOL) bool, bool &, const bool &
 {
-  $1 = (SWIG_PG_BOOLP($input)) ? 1 : 0;
+  $1 = swig_pg_is_bool($input);
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
 	float, double,
 	const float &, const double &
 {
-  $1 = (SWIG_PG_REALP($input)) ? 1 : 0;
+  $1 = swig_pg_is_float($input);
 }
 
 %typecheck(SWIG_TYPECHECK_STRING) char {
-  $1 = (SWIG_PG_STRINGP($input)) ? 1 : 0;
+  $1 = swig_pg_is_string($input);
 }
 
 %typecheck(SWIG_TYPECHECK_STRING) char * {
-  $1 = (SWIG_PG_STRINGP($input)) ? 1 : 0;
+  $1 = swig_pg_is_string($input);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE [] {
