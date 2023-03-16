@@ -129,7 +129,7 @@ static SWIGINLINE void *
 swig_pg_malloc_(SWIG_PG_ERROR_PARAMS, size_t size) {
   void *p = palloc(size);
   if (p == NULL)
-    _swig_pg_signal_error(file, line, function, func_name, "memory error");
+    _swig_pg_signal_error(file, line, function, func_name, "memory error : cannot allocate %lu", (unsigned long) size);
   return p;
 }
 #define swig_pg_malloc(size) swig_pg_malloc_(SWIG_PG_ERROR_ARGS, size)
