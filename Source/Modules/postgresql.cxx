@@ -872,9 +872,9 @@ public:
 
     Printv(fieldnames_tab, "static const char *_swig_struct_", cls_swigtype, "_field_names[] = { \n", NIL);
 
-    Printv(convert_proto_tab, "static Datum_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ");\n", NIL);
+    Printv(convert_proto_tab, "static Datum _swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ");\n", NIL);
 
-    Printv(convert_tab, "static Datum_swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ")\n {\n", NIL);
+    Printv(convert_tab, "static Datum _swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ")\n {\n", NIL);
 
     Printv(convert_tab,
 	   tab4, "Datum obj;\n", tab4, "Datum fields[_swig_struct_", cls_swigtype, "_field_names_cnt];\n", tab4, "int i = 0;\n\n", NIL);
@@ -887,7 +887,7 @@ public:
 
     Printv(fieldnames_tab, "};\n", NIL);
 
-    Printv(f_header, "static Datum_swig_struct_type_", cls_swigtype, ";\n", NIL);
+    Printv(f_header, "static Datum _swig_struct_type_", cls_swigtype, ";\n", NIL);
 
     Printv(f_header, fieldnames_tab, NIL);
     Printv(f_header, "#define  _swig_struct_", cls_swigtype, "_field_names_cnt (sizeof(_swig_struct_", cls_swigtype, "_field_names)/sizeof(char*))\n", NIL);
@@ -896,7 +896,7 @@ public:
     Printv(f_wrappers, convert_tab, NIL);
 
     Printv(init_func_def, "_swig_struct_type_", cls_swigtype,
-	   " = SWIG_POSTGRESQL_new_swig_pg_struct(menv, \"", scm_structname, "\", ",
+	   " = swig_pg_make_struct_type(menv, \"", scm_structname, "\", ",
 	   "_swig_struct_", cls_swigtype, "_field_names_cnt,", "(char**) _swig_struct_", cls_swigtype, "_field_names);\n", NIL);
 
     Delete(swigtype_ptr);

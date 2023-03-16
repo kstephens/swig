@@ -65,9 +65,10 @@ typedef struct SWIG_PG_Type_s {
 #define SWIG_PG_TYPE(X) ((SWIG_PG_Type) 0)
 #define swig_pg_make_type(...) ((SWIG_PG_Type) 0)
 
-#define swig_pg_make_struct_names(...) ((Datum*) 0)
-#define swig_pg_make_struct_type(...) 0
-#define swig_pg_make_struct_values(...) ((Datum*) 0)
+#define swig_pg_make_struct_type(...)      swig_pg_UNIMPLEMENTED
+#define swig_pg_make_struct_names(...)     ((Datum*) swig_pg_UNIMPLEMENTED)
+#define swig_pg_make_struct_values(...)    ((Datum*) swig_pg_UNIMPLEMENTED)
+#define swig_pg_make_struct_instance(...)  swig_pg_UNIMPLEMENTED
 
 /*
 struct swig_pg_runtime_data {
