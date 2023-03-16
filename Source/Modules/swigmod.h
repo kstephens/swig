@@ -298,6 +298,9 @@ protected:
   /* Return the name to use for the given parameter. */
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter = false) const;
 
+  /* Return the name to use for the given parameter. */
+  virtual String *makeNewParameterName(Node *n, Parm *p, int arg_num, bool setter = false) const;
+
   /* Some language modules require additional wrappers for virtual methods not declared in sub-classes */
   virtual bool extraDirectorProtectedCPPMethodsRequired() const;
 

@@ -56,11 +56,19 @@ const char *Swig_cresult_name(void) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_cparm_name(Parm *p, int i) {
-  String *name = NewStringf("arg%d", i + 1);
-  if (p) {
-    Setattr(p, "lname", name);
+  String *name;
+  // too hard to get this right.
+  // See lang.cxx, cwrap.c
+  if (p && 0) {
+    name = Getattr(p, "cparm:name");
+    if ( ! name ) {
+      name = NewStringf("%s__swig_arg%d", Getattr(p, "name"), i + 1);
+      Setattr(p, "cparm:name", name);
+      Setattr(p, "lname", name);
+    }
+  } else {
+    name = NewStringf("swig_arg%d", i + 1);
   }
-
   return name;
 }
 
@@ -690,7 +698,7 @@ static String *recursive_flag_search(Node *n, const String *attr, const String *
 String *Swig_unref_call(Node *n) {
   String *unref = recursive_flag_search(n, "feature:unref", "feature:nounref");
   if (unref) {
-    String *pname = Swig_cparm_name(0, 0);
+    String *pname = Swig_cparm_name(n, 0);
     unref = NewString(unref);
     Replaceall(unref, "$this", pname);
     Replaceall(unref, "$self", pname);
@@ -730,7 +738,7 @@ String *Swig_cdestructor_call(Node *n) {
   if (unref) {
     return unref;
   } else {
-    String *pname = Swig_cparm_name(0, 0);
+    String *pname = Swig_cparm_name(n, 0);
     String *call = NewStringf("free((char *) %s);", pname);
     Delete(pname);
     return call;
@@ -1587,7 +1595,7 @@ int Swig_VarsetToFunction(Node *n, int flags) {
     Delete(sname);
   } else {
     if (!Strstr(type, "enum $unnamed")) {
-      String *pname = Swig_cparm_name(0, 0);
+      String *pname = Swig_cparm_name(n, 0);
       String *dref = Swig_wrapped_var_deref(type, pname, varcref);
       String *call = NewStringf("%s = %s;", nname, dref);
       Setattr(n, "wrap:action", call);
@@ -1595,7 +1603,7 @@ int Swig_VarsetToFunction(Node *n, int flags) {
       Delete(dref);
       Delete(pname);
     } else {
-      String *pname = Swig_cparm_name(0, 0);
+      String *pname = Swig_cparm_name(n, 0);
       String *call = NewStringf("if (sizeof(int) == sizeof(%s)) *(int*)(void*)&(%s) = %s;", nname, nname, pname);
       Setattr(n, "wrap:action", call);
       Delete(pname);
