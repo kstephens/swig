@@ -204,13 +204,12 @@ public:
     Printv(outfile_pg_sql,      "--", extension_version, ".sql", NIL);
     String *outfile_pg_control  = outputFileForSuffix(".", ".control");
     String *outfile_pg_make     = outputFileForSuffix(".", ".make");
-    String *outfile_pg_test     = outputFileForSuffix("sql", "");
-    Printv(outfile_pg_test,     "_test.sql", NIL);
+    String *outfile_pg_test     = outputFileForSuffix("sql", "_test.sql");
 
-    f_pg_sql      = NewFile(outfile_pg_sql,     "w", SWIG_output_files());
-    f_pg_control  = NewFile(outfile_pg_control, "w", SWIG_output_files());
-    f_pg_make     = NewFile(outfile_pg_make,    "w", SWIG_output_files());
-    f_pg_test     = NewFile(outfile_pg_test,    "w", SWIG_output_files());
+    f_pg_sql      = NewFile(outfile_pg_sql,      "w", SWIG_output_files());
+    f_pg_control  = NewFile(outfile_pg_control,  "w", SWIG_output_files());
+    f_pg_make     = NewFile(outfile_pg_make,     "w", SWIG_output_files());
+    f_pg_test     = NewFile(outfile_pg_test,     "w", SWIG_output_files());
 
     begin_pg_sql(n);
 
@@ -276,6 +275,11 @@ public:
   }
 
   String *outputFileForSuffix(const char* dir, const char *suffix) {
+    String* dir_ = NewString(dir);
+    String* odir = NewString(SWIG_output_directory());
+    Swig_new_subdirectory(odir, dir_);
+    Delete(dir_);
+    Delete(odir);
     return NewStringf("%s%s/%s%s", SWIG_output_directory(), dir, extension_name, suffix);
   }
 
@@ -339,6 +343,7 @@ public:
   }
 
   void create_pg_test(Node *n) {
+    assert(f_pg_test);
     generate_file(n, f_pg_test,
       "-- -----------------------------------------------------\n"
       "-- ${extension_name}_test.sql:\n"
