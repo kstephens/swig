@@ -22,13 +22,16 @@ PG_MODULE_MAGIC;
 
 /* Common SWIG API */
 
-#define swig_pg_void       ((Datum) 0)      // ???
-#define swig_pg_true       BoolGetDatum(1)  // ??? : Save a constant.
+#define swig_pg_void       ((Datum) 0)      // See: PG_RETURN_VOID()
+#define swig_pg_true       BoolGetDatum(1)  // TODO : Save a constant?
 #define swig_pg_false      BoolGetDatum(0)
 
 /**************************************************
  * !!! : PLACEHOLDERS
  */
+
+// for dispatching
+#define swig_PG_FUNCTION_PARAMS	fcinfo
 
 #define swig_pg_UNIMPLEMENTED swig_pg_void
 #define swig_pg_UNUSED ((void) 0)
@@ -106,7 +109,7 @@ static void _swig_pg_signal_error(SWIG_PG_ERROR_PARAMS, const char *fmt, ...) {
   // ??? : does PG have exception processing?
 }
 
-static void _swig_pg_wrong_type(SWIG_PG_ERROR_PARAMS, const char *msg, int argnum, int argc, Datum* argv) {
+static void _swig_pg_wrong_type(SWIG_PG_ERROR_PARAMS, const char *msg, int argnum) {
   char str[1024];
   snprintf(str, sizeof(str) - 1, "%s : %s : argnum %d", func_name, msg, argnum);
   _swig_pg_signal_error(file, line, function, func_name, "%s : argnum %d", msg, argnum);
@@ -162,7 +165,7 @@ static int swig_DatumGetChar(Datum d) {
 #define SWIG_NewPointerObj(ptr, type, owner) \
   SWIG_PG_NewPointerObj((void *)ptr, type, owner)
 #define SWIG_MustGetPtr(s, type, argnum, flags) \
-  SWIG_PG_MustGetPtr(s, type, argnum, flags, FUNC_NAME, argc, argv)
+  SWIG_PG_MustGetPtr(s, type, argnum, flags, FUNC_NAME)
 
 #define SWIG_contract_assert(expr,msg) \
   do { \
@@ -269,11 +272,10 @@ SWIG_PG_ConvertPtr(Datum s, void **result, swig_type_info *type, int flags) {
 
 static SWIGINLINE void *
 SWIG_PG_MustGetPtr(Datum s, swig_type_info *type,
-                         int argnum, int flags, const char *func_name,
-                         int argc, Datum *argv) {
+                         int argnum, int flags, const char *func_name) {
   void *result;
   if (SWIG_PG_ConvertPtr(s, &result, type, flags)) {
-    _swig_pg_wrong_type(__FILE__, __LINE__, __FUNCTION__, func_name, type->str ? type->str : "void *", argnum - 1, argc, argv);
+    _swig_pg_wrong_type(__FILE__, __LINE__, __FUNCTION__, func_name, type->str ? type->str : "void *", argnum - 1);
   }
   return result;
 }

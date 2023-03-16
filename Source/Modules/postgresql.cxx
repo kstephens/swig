@@ -470,6 +470,9 @@ public:
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
 
+    argc_template_string = NewString("PG_NARGS()");
+    argv_template_string = NewString("PG_GETARG_DATUM(%d)");
+
     numargs = emit_num_arguments(l);
     numreq = emit_num_required(l);
 
@@ -489,6 +492,9 @@ public:
       Printf(f->code, "if (!_the_function) { swig_pg_signal_error(\"Cannot load C function '%s'\"); }\n", iname);
       Printf(f->code, "caller=_the_function;\n");
     }
+
+    // Check number of arguments:
+    Printf(f->code, "if ( PG_NARGS() < %d ) swig_pg_signal_error(\"not enough arguments : expected %%d : given %%d\", %d, PG_NARGS());\n", numreq, numreq);
 
     // Extract parameters:
 
@@ -636,7 +642,7 @@ public:
 
 	int maxargs;
   // ??? : FIXME
-	String *dispatch = Swig_overload_dispatch(n, "return %s(argc,argv);", &maxargs);
+	String *dispatch = Swig_overload_dispatch(n, "return %s(swig_PG_FUNCTION_PARAMS);", &maxargs);
 
 	/* Generate a dispatch wrapper for all overloaded functions */
 
@@ -647,7 +653,7 @@ public:
 	Printv(df->def, "Datum\n", dname, "(PG_FUNCTION_ARGS) {", NIL);
 	Printv(df->code, dispatch, "\n", NIL);
 	Printf(df->code, "swig_pg_signal_error(\"No matching function for overloaded '%s'\");\n", iname);
-	Printf(df->code, "return NULL;\n");
+	Printf(df->code, "return swig_pg_void;\n");
 	Printv(df->code, "}\n", NIL);
 	Wrapper_print(df, f_wrappers);
 	Printf(init_func_def, "swig_pg_add_global(\"%s\", swig_pg_make_prim_w_arity(%s,\"%s\",%d,%d),menv);\n", proc_name, dname, proc_name, 0, maxargs);
@@ -691,7 +697,7 @@ public:
     String *tm;
     String *tm2 = NewString("");
     String *argnum = NewString("0");
-    String *arg = NewString("argv[0]");
+    String *arg = NewString("PG_GETARG_DATUM(0)");
     Wrapper *f;
 
     if (!addSymbol(iname, n))
@@ -716,9 +722,9 @@ public:
 
       if (!GetFlag(n, "feature:immutable")) {
       	/* Check for a setting of the variable value */
-	Printf(f->code, "if (argc) {\n");
+	Printf(f->code, "if (PG_NARGS()) {\n");
 	if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	  Replaceall(tm, "$input", "argv[0]");
+	  Replaceall(tm, "$input", "PG_GETARG_DATUM(0)");
 	  Replaceall(tm, "$argnum", "1");
 	  emit_action_code(n, f->code, tm);
 	} else {

@@ -10,10 +10,6 @@
 %runtime "swigerrors.swg"  // SWIG errors
 %runtime "postgresql_run.swg"
 
-%define SWIG_APPEND_VALUE(value)
-   values[lenv++] = value
-%enddef
-
 /* Definitions */
 #define SWIG_malloc(size) swig_malloc(size, FUNC_NAME)
 #define SWIG_free(mem) free(mem)
@@ -21,23 +17,23 @@
 #define SWIG_convert_short(o)					\
   SWIG_convert_integer(o, - (1 << (8 * sizeof(short) - 1)),	\
 		       (1 << (8 * sizeof(short) - 1)) - 1,	\
-		       FUNC_NAME, $argnum-1, argc, argv)
+		       FUNC_NAME, $argnum-1)
 #define SWIG_convert_int(o)					\
   SWIG_convert_integer(o, INT_MIN, INT_MAX,			\
-		       FUNC_NAME, $argnum-1, argc, argv)
+		       FUNC_NAME, $argnum-1)
 #define SWIG_convert_long(o)					\
   SWIG_convert_integer(o, LONG_MIN, LONG_MAX,			\
-		       FUNC_NAME, $argnum-1, argc, argv)
+		       FUNC_NAME, $argnum-1)
 #define SWIG_convert_unsigned_short(o)				\
   SWIG_convert_unsigned_integer(o, 0,				\
 		       (1 << (8 * sizeof(short))) - 1,		\
-		       FUNC_NAME, $argnum-1, argc, argv)
+		       FUNC_NAME, $argnum-1)
 #define SWIG_convert_unsigned_int(o)				\
   SWIG_convert_unsigned_integer(o, 0, UINT_MAX,			\
-		       FUNC_NAME, $argnum-1, argc, argv)
+		       FUNC_NAME, $argnum-1)
 #define SWIG_convert_unsigned_long(o)				\
   SWIG_convert_unsigned_integer(o, 0, ULONG_MAX,		\
-		       FUNC_NAME, $argnum-1, argc, argv)
+		       FUNC_NAME, $argnum-1)
 
 /* Guile compatibility kludges */
 #define SCM_VALIDATE_VECTOR(argnum, value) (void)0

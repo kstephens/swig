@@ -4,7 +4,7 @@
 
 #define %set_output(obj)                  $result = obj
 #define %set_varoutput(obj)               $result = obj
-#define %argument_fail(code, type, name, argn)	swig_pg_wrong_type(FUNC_NAME, type, argn, argc, argv)
+#define %argument_fail(code, type, name, argn)	swig_pg_wrong_type(FUNC_NAME, type, argn)
 #define %as_voidptr(ptr)		(void*)(ptr)
 
 
@@ -114,14 +114,14 @@
 
 /* Enums */
 %typemap(in) enum SWIGTYPE {
-  if (!SWIG_is_integer($input))
-      swig_pg_wrong_type("INTEGER", $argnum - 1, argc, argv);
+  if (!swig_pg_is_integer($input))
+      swig_pg_wrong_type("INTEGER", $argnum - 1);
   $1 = ($1_type) SWIG_convert_int($input);
 }
 
 %typemap(varin) enum SWIGTYPE {
-  if (!SWIG_is_integer($input))
-      swig_pg_wrong_type("INTEGER", 0, argc, argv);
+  if (!swig_pg_is_integer($input))
+      swig_pg_wrong_type("INTEGER", 0);
   $1 = ($1_type) SWIG_convert_int($input);
 }
 
@@ -291,7 +291,7 @@ SIMPLE_MAP(const char *, SWIG_PG_STRINGP,
 %define REF_MAP(C_NAME, PG_PREDICATE, PG_TO_C, C_TO_PG, PG_NAME)
   %typemap(in) const C_NAME & (C_NAME temp) {
      if (!PG_PREDICATE($input))
-        swig_pg_wrong_type(#PG_NAME, $argnum - 1, argc, argv);
+        swig_pg_wrong_type(#PG_NAME, $argnum - 1);
      temp = PG_TO_C($input);
      $1 = &temp;
   }
