@@ -813,7 +813,7 @@ public:
     } else {
       // Create variable and assign it a value
 
-      Printf(f_header, "static %s = ", SwigType_lstr(type, var_name));
+      Printf(f_header, "static const %s = ", SwigType_lstr(type, var_name));
       bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
       if ((SwigType_type(type) == T_STRING)) {
 	Printf(f_header, "\"%s\";\n", value);
