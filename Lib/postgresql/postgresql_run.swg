@@ -156,6 +156,9 @@ static int swig_DatumGetChar(Datum d) {
   }
 }
 // !!! PLACEHOLDERS : generated .sql defines strict - probably dont need these checks.
+static int swig_pg_is_null(Datum d) {
+  return 0;
+}
 static int swig_pg_is_bool(Datum d) {
   // TODO:
   return 1;
@@ -172,10 +175,41 @@ static int swig_pg_is_string(Datum d) {
   // TODO:
   return 1;
 }
+static int swig_pg_is_sequence(Datum d) {
+  // TODO:
+  return 0;
+}
+static size_t swig_pg_sequence_size(Datum d) {
+  // TODO:
+  return 0;
+}
+static Datum swig_pg_sequence_get(Datum d, size_t i) {
+  // TODO:
+  return swig_pg_void;
+}
+static Datum swig_pg_sequence_set(Datum d, size_t i, Datum v) {
+  // TODO:
+  return swig_pg_void;
+}
 
 #define swig_DatumGetUChar swig_DatumGetChar
 #define swig_DatumGetVoid(...) ((void) __VA_ARGS__)
 #define swig_VoidGetDatum(...) swig_pg_void
+
+/****************************************************/
+
+static long
+SWIG_convert_integer(Datum o,
+		     long lower_bound, long upper_bound,
+		     const char *func_name, int argnum)
+{
+  // ??? does this work for all integral PG types?
+  // ??? do we need a typecheck?
+  long value = DatumGetInt64(o);
+  if (value < lower_bound || value > upper_bound)
+    swig_pg_wrong_type("integer", argnum);
+  return value;
+}
 
 /****************************************************/
 
