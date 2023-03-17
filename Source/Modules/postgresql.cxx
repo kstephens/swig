@@ -468,7 +468,11 @@ public:
 
     Wrapper_add_local(f, "swig_pg_result", "Datum swig_pg_result = swig_pg_void");
 
-    Printv(f->code, "  	PG_TRY();\n{\n", NIL);
+    Printv(f->code,
+      "  PG_TRY();\n",
+      "  {\n",
+      // "    /* PG_TRY : BEGIN */ \n",
+      NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_parameter_variables(l, f);
@@ -496,7 +500,10 @@ public:
     }
 
     // Check number of arguments:
-    Printf(f->code, "if ( PG_NARGS() < %d ) swig_pg_signal_error(\"not enough arguments : expected %%d : given %%d\", %d, PG_NARGS());\n", numreq, numreq);
+    Printf(f->code,
+    "if ( PG_NARGS() < %d ) {\n"
+    "  swig_pg_signal_error(\"not enough arguments : expected %%d : given %%d\", %d, PG_NARGS());\n"
+    "}\n", numreq, numreq);
 
     // Extract parameters:
 
@@ -610,11 +617,21 @@ public:
       Printv(f->code, tm, "\n", NIL);
     }
 
-    Printv(f->code, "  }\n  PG_CATCH();\n  {\n", NIL);
+    Printv(f->code,
+      // "    /* PG_TRY : END */ \n  }\n",
+      "  }\n",
+      "  PG_CATCH();\n",
+      "  {\n",
+      // "  /* PG_CATCH : { */\n",
+      NIL);
 
     // TODO: do something with the error message?
-    Printv(f->code, "    ", "swig_pg_signal_error(\"Error in C function\");\n");
-    Printv(f->code, "  }\n  PG_END_TRY();\n", NIL);
+    Printv(f->code, "    swig_pg_signal_error(\"Error in C function\");\n", NIL);
+    Printv(f->code,
+      // "     /* PG_ : } */ \n"
+      "  }\n",
+      "  PG_END_TRY();\n",
+      NIL);
 
     Printv(f->code, "  ", rtn, ";\n", NIL);
 
