@@ -1462,7 +1462,7 @@ int Language::membervariableHandler(Node *n) {
 	    Delete(pname);
 	  }
 	} else {
-	  String *pname = isNonVirtualProtectedAccess(n) ? NewString("darg") : Swig_cparm_name(n, 0);
+	  String *pname = isNonVirtualProtectedAccess(n) ? NewString("darg") : Swig_cparm_name(0, 0);
 	  target = NewStringf("%s->%s", pname, name);
 	  Delete(pname);
 	}
@@ -3059,7 +3059,7 @@ int Language::variableWrapper(Node *n) {
 	make_set_wrapper = 0;
       }
     } else {
-      String *pname0 = Swig_cparm_name(n, 0);
+      String *pname0 = Swig_cparm_name(0, 0);
       Replace(tm, "$input", pname0, DOH_REPLACE_ANY);
       Setattr(n, "wrap:action", tm);
       Delete(tm);
