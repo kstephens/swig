@@ -463,6 +463,8 @@ public:
     Printv(f->def, "Datum ", wname, "(PG_FUNCTION_ARGS) {\n", NIL);
 
     Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
+    argc_template_string = NewString("PG_NARGS()");
+    argv_template_string = NewString("PG_GETARG_DATUM(%d)");
 
     Wrapper_add_local(f, "swig_pg_result", "Datum swig_pg_result = swig_pg_void");
 
@@ -474,9 +476,6 @@ public:
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
-
-    argc_template_string = NewString("PG_NARGS()");
-    argv_template_string = NewString("PG_GETARG_DATUM(%d)");
 
     numargs = emit_num_arguments(l);
     numreq = emit_num_required(l);
