@@ -143,7 +143,7 @@ namespace std {
             }
         }
       public:
-        typedef size_t size_type;
+        typedef unsigned int size_type;
         typedef ptrdiff_t difference_type;
         typedef T value_type;
         typedef value_type* pointer;
@@ -151,12 +151,12 @@ namespace std {
         typedef value_type& reference;
         typedef const value_type& const_reference;
 
-        vector(size_t size = 0);
-        vector(size_t size, const T& value);
+        vector(unsigned int size = 0);
+        vector(unsigned int size, const T& value);
         vector(const vector& other);
 
         %rename(length) size;
-        size_t size() const;
+        unsigned int size() const;
         %rename("emptyQ") empty;
         bool empty() const;
         %rename("clearE") clear;
@@ -173,14 +173,14 @@ namespace std {
                 self->pop_back();
                 return x;
             }
-            T& ref(size_t i) throw (std::out_of_range) {
+            T& ref(unsigned int i) throw (std::out_of_range) {
                 size_t size = size_t(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
                 else
                     throw std::out_of_range("vector index out of range");
             }
-            void set(size_t i, const T& x) throw (std::out_of_range) {
+            void set(unsigned int i, const T& x) throw (std::out_of_range) {
                 size_t size = size_t(self->size());
                 if (i>=0 && i<size)
                     (*self)[i] = x;
@@ -284,7 +284,7 @@ namespace std {
             }
         }
       public:
-        typedef size_t size_type;
+        typedef unsigned int size_type;
         typedef ptrdiff_t difference_type;
         typedef T value_type;
         typedef value_type* pointer;
@@ -292,12 +292,12 @@ namespace std {
         typedef value_type& reference;
         typedef const value_type& const_reference;
 
-        vector(size_t size = 0);
-        vector(size_t size, const T& value);
+        vector(unsigned int size = 0);
+        vector(unsigned int size, const T& value);
         vector(const vector& other);
 
         %rename(length) size;
-        size_t size() const;
+        unsigned int size() const;
         %rename("emptyQ") empty;
         bool empty() const;
         %rename("clearE") clear;
