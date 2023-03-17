@@ -1457,7 +1457,7 @@ int Language::membervariableHandler(Node *n) {
 	    String *base = Getattr(sn, "name");
 	    target = NewStringf("%s::%s", base, name);
 	  } else {
-	    String *pname = Swig_cparm_name(n, 0);
+	    String *pname = Swig_cparm_name(0, 0);
 	    target = NewStringf("(*%s)->%s", pname, name);
 	    Delete(pname);
 	  }
@@ -1489,8 +1489,8 @@ int Language::membervariableHandler(Node *n) {
 	    make_set_wrapper = 0;
 	  }
 	} else {
-	  String *pname0 = Swig_cparm_name(n, 0);
-	  String *pname1 = Swig_cparm_name(n, 1);
+	  String *pname0 = Swig_cparm_name(0, 0);
+	  String *pname1 = Swig_cparm_name(0, 1);
 	  Replace(tm, "$input", pname1, DOH_REPLACE_ANY);
 	  Replace(tm, "$self", pname0, DOH_REPLACE_ANY);
 	  Setattr(n, "wrap:action", tm);
@@ -3647,8 +3647,7 @@ String *Language::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) 
   // If the parameter has no name at all or has a non-unique name, replace it with "argN".
   // On the assumption that p is pointer/element in plist, only replace the 2nd and subsequent duplicates
   if (!pn || (count > 1 && p != first_duplicate_parm)) {
-    // arg = NewStringf("arg%d", arg_num);
-    arg = makeNewParameterName(n, p, arg_num, setter);
+    arg = NewStringf("arg%d", arg_num);
   } else {
     // Otherwise, try to use the original C name, but modify it if necessary to avoid conflicting with the language keywords.
     arg = Swig_name_make(p, 0, pn, 0, 0);
