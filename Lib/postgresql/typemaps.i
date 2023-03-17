@@ -125,8 +125,8 @@
   $1 = ($1_type) SWIG_convert_int($input);
 }
 
-%typemap(out) enum SWIGTYPE "$result = postgresql_make_integer_value($1);"
-%typemap(varout) enum SWIGTYPE "$result = postgresql_make_integer_value($1);"
+%typemap(out)     enum SWIGTYPE "$result = Int32GetDatum($1);"
+%typemap(varout)  enum SWIGTYPE "$result = Int32GetDatum($1);"
 
 
 /* Pass-by-value */
