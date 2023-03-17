@@ -990,6 +990,8 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   p = NewParm(type, "self", n);
   Setattr(p, "self", "1");
   Setattr(p, "hidden","1");
+  Setattr(p, "self:class", n);
+  Setattr(p, "self:type", Getattr(p, "type"));
   /*
      Disable the 'this' ownership in 'self' to manage inplace
      operations like:

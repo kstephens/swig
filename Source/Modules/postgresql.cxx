@@ -866,15 +866,15 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
   virtual int classHandler(Node *n) {
-    String *scm_structname = NewString("");
-    SwigType *ctype_ptr = NewStringf("p.%s", getClassType());
+    String *pg_structname  = NewString("");
+    SwigType *ctype = getClassType();
+    SwigType *ctype_ptr = NewStringf("p.%s", ctype);
 
     SwigType *t = NewStringf("p.%s", Getattr(n, "name"));
     swigtype_ptr = SwigType_manglestr(t);
     Delete(t);
 
     cls_swigtype = SwigType_manglestr(Getattr(n, "name"));
-
 
     fieldnames_tab = NewString("");
     convert_tab = NewString("");
@@ -883,12 +883,17 @@ public:
     struct_name = Getattr(n, "sym:name");
     mangled_struct_name = Swig_name_mangle_string(Getattr(n, "sym:name"));
 
-    Printv(scm_structname, struct_name, NIL);
-    Replaceall(scm_structname, "_", "-");
+    String *pg_type = Getattr(ctype, "pg_type");
+    if ( ! pg_type )
+      pg_type = NewStringf("%s%s", extension_schema_prefix, mangled_struct_name);
+    Setattr(ctype, "pg_type", pg_type);
+    Setattr(ctype_ptr, "pg_type", pg_type);
+    Setattr(n, "pg_type", pg_type);
+
+    Printv(pg_structname , struct_name, NIL);
+    // Replaceall(pg_structname , "_", "-");
 
     Printv(fieldnames_tab, "static const char *_swig_struct_", cls_swigtype, "_field_names[] = { \n", NIL);
-
-    Printv(convert_proto_tab, "static Datum _swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ");\n", NIL);
 
     Printv(convert_tab, "static Datum _swig_convert_struct_", cls_swigtype, "(", SwigType_str(ctype_ptr, "ptr"), ")\n {\n", NIL);
 
@@ -912,7 +917,7 @@ public:
     Printv(f_wrappers, convert_tab, NIL);
 
     Printv(init_func_def, "_swig_struct_type_", cls_swigtype,
-	   " = swig_pg_make_struct_type(menv, \"", scm_structname, "\", ",
+	   " = swig_pg_make_struct_type(menv, \"", pg_structname , "\", ",
 	   "_swig_struct_", cls_swigtype, "_field_names_cnt,", "(char**) _swig_struct_", cls_swigtype, "_field_names);\n", NIL);
 
     Delete(swigtype_ptr);
