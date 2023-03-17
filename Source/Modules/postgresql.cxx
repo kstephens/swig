@@ -483,19 +483,17 @@ public:
 
     /* Add the holder for the pointer to the function to be opened */
     if (load_libraries) {
-      Wrapper_add_local(f, "_function_loaded", "static int _function_loaded=(1==0)");
-      Wrapper_add_local(f, "_the_function", "static void *_the_function=NULL");
+      Wrapper_add_local(f, "_function_loaded", "static int _function_loaded = (1==0)");
+      Wrapper_add_local(f, "_the_function", "static void *_the_function = NULL");
       {
 	String *parms = ParmList_protostr(l);
 	String *func = NewStringf("(*caller)(%s)", parms);
 	Wrapper_add_local(f, "caller", SwigType_lstr(d, func));	/*"(*caller)()")); */
       }
-    }
 
-    if (load_libraries) {
-      Printf(f->code, "if (!_function_loaded) { _the_function=postgresql_load_function(\"%s\");_function_loaded=(1==1); }\n", iname);
+      Printf(f->code, "if (!_function_loaded) { _the_function = swig_pg_load_function(\"%s\"); _function_loaded = (1==1); }\n", iname);
       Printf(f->code, "if (!_the_function) { swig_pg_signal_error(\"Cannot load C function '%s'\"); }\n", iname);
-      Printf(f->code, "caller=_the_function;\n");
+      Printf(f->code, "caller = _the_function;\n");
     }
 
     // Check number of arguments:
