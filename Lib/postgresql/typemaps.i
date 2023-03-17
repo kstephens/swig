@@ -279,11 +279,11 @@ SIMPLE_MAP(double, swig_pg_is_float,
 // ??? memory mgmt?
 // Does DatumGetCString work with pg TEXT type?
 SIMPLE_MAP(char *, SWIG_PG_STRINGP,
-     DatumGetCString, swig_CStringGetDatum,
-     "TEXT", "PG_RETURN_DATUM(swig_CStringGetDatum($result))");
+     swig_pg_datum_to_cstring, swig_pg_cstring_to_datum,
+     "TEXT", "PG_RETURN_DATUM(swig_pg_cstring_to_datum($result))");
 SIMPLE_MAP(const char *, SWIG_PG_STRINGP,
-     DatumGetCString, swig_CStringGetDatum,
-     "TEXT", "PG_RETURN_DATUM(swig_CStringGetDatum($result))");
+     swig_pg_datum_to_cstring, swig_pg_cstring_to_datum,
+     "TEXT", "PG_RETURN_DATUM(swig_pg_cstring_to_datum($result))");
 
 /* Const primitive references.  Passed by value */
 /* !!! : TODO */

@@ -311,7 +311,7 @@ namespace std {
     // See typemaps.i
     specialize_std_vector(bool,swig_pg_is_bool,DatumGetBool,\
                           swig_make_boolean);
-    specialize_std_vector(char,swig_pg_is_integer,swig_DatumGetChar,\
+    specialize_std_vector(char,swig_pg_is_integer,swig_pg_datum_to_char,\
                           swig_pg_make_integer_value);
     specialize_std_vector(int,swig_pg_is_integer,DatumGetInt32,\
                           swig_pg_make_integer_value);
@@ -319,7 +319,7 @@ namespace std {
                           swig_pg_make_integer_value);
     specialize_std_vector(long,swig_pg_is_integer,DatumGetInt64,\
                           swig_pg_make_integer_value);
-    specialize_std_vector(unsigned char,swig_pg_is_integer,swig_DatumGetUChar,\
+    specialize_std_vector(unsigned char,swig_pg_is_integer,swig_pg_datum_to_char,\
                           swig_pg_make_integer_value);
     specialize_std_vector(unsigned int,swig_pg_is_integer,DatumGetUInt32,\
                           swig_pg_make_integer_value);

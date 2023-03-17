@@ -138,23 +138,31 @@ swig_pg_malloc_(SWIG_PG_ERROR_PARAMS, size_t size) {
 /****************************************************/
 /* Type helpers */
 
-// https://cpp.hotexamples.com/examples/-/-/PG_RETURN_CSTRING/cpp-pg_return_cstring-function-examples.html
-static Datum swig_CStringGetDatum(const char *str) {
-  return CStringGetTextDatum(pstrdup(str));
+// See: postgres/src/include/utils/builtins.h
+//      postgres/src/backend/utils/adt/varlena.c
+static Datum swig_pg_cstring_to_datum(const char *str) {
+  return PointerGetDatum(cstring_to_text(str));
 }
-static Datum swig_CharGetDatum(int c) {
-  swig_pg_signal_error("unimplemented");
-  PG_RETURN_VOID();
+static Datum swig_pg_cstring_len_to_datum(const char *src, size_t len) {
+  return PointerGetDatum(cstring_to_text_with_len(src, len));
 }
-static int swig_DatumGetChar(Datum d) {
-  const char *str = DatumGetCString(d);
-  if ( *str ) {
-    return str[0];
-  } else {
-    swig_pg_signal_error("cannot cast empty string to C char");
-    PG_RETURN_VOID();
-  }
+// Caller must pfree().
+static char* swig_pg_datum_to_cstring(Datum d) {
+  // TODO: typecheck?
+  return text_to_cstring(DatumGetTextPP(d));
 }
+
+static Datum swig_pg_char_to_datum(int c) {
+  char src[2] = { c, 0 };
+  return swig_pg_cstring_len_to_datum(src, 1);
+}
+static int swig_pg_datum_to_char(Datum d) {
+  // TODO: typecheck?
+  char dst[2] = { -1, 0 };
+  text_to_cstring_buffer(DatumGetTextPP(d), dst, 1);
+  return dst[0];
+}
+
 // !!! PLACEHOLDERS : generated .sql defines strict - probably dont need these checks.
 static int swig_pg_is_null(Datum d) {
   return 0;
@@ -191,10 +199,6 @@ static Datum swig_pg_sequence_set(Datum d, size_t i, Datum v) {
   // TODO:
   return swig_pg_void;
 }
-
-#define swig_DatumGetUChar swig_DatumGetChar
-#define swig_DatumGetVoid(...) ((void) __VA_ARGS__)
-#define swig_VoidGetDatum(...) swig_pg_void
 
 /****************************************************/
 

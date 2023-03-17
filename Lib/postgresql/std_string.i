@@ -31,22 +31,22 @@ namespace std {
     %typemap(in) string {
         if ( ! swig_pg_is_string($input) )
             swig_pg_wrong_type("expected string : %s : arg %d", $symname, $argnum);
-        $1.assign(DatumGetCString($input));
+        $1.assign(swig_pg_string_to_datum($input));
     }
 
     %typemap(in) const string & ($*1_ltype temp) {
         if ( ! swig_pg_is_string($input) )
             swig_pg_wrong_type("expected string : %s : arg %d", $symname, $argnum);
-        temp.assign(DatumGetCString($input));
+        temp.assign(swig_pg_datum_to_string($input));
         $1 = &temp;
     }
 
     %typemap(out) string {
-        $result = swig_CStringGetDatum($1.c_str());
+        $result = swig_pg_string_to_datum($1);
     }
 
     %typemap(out) const string & {
-        $result = swig_CStringGetDatum($1->c_str());
+        $result = swig_pg_string_to_datum($1);
     }
 
     %typemap(throws) string {
@@ -57,5 +57,3 @@ namespace std {
       swig_pg_signal_error("%s: %s", FUNC_NAME, $1.c_str());
     }
 }
-
-
