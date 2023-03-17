@@ -533,9 +533,6 @@ public:
 	throw_unhandled_postgresql_type_error(pt);
 	p = nextSibling(p);
       }
-      if (i >= numreq) {
-	Printf(f->code, "}\n");
-      }
       Delete(source);
     }
 
