@@ -196,8 +196,9 @@ We use the TEXT type to represent strings.
 */
 
 
-%define SIMPLE_MAP(C_NAME, PG_PREDICATE, PG_TO_C, C_TO_PG, PG_NAME)
-%typemap("pg_type")   C_NAME PG_NAME;
+%define SIMPLE_MAP(C_NAME, PG_TO_C, C_TO_PG, PG_NAME)
+%typemap("pg_type")       C_NAME   PG_NAME;
+%typemap("pg_type") const C_NAME & PG_NAME;
 %typemap(in) C_NAME {
     $1 = PG_TO_C($input);
 }
@@ -226,100 +227,70 @@ We use the TEXT type to represent strings.
 %typemap(argout) C_NAME *BOTH = C_NAME *OUTPUT;
 %typemap(in) C_NAME *INOUT = C_NAME *INPUT;
 %typemap(argout) C_NAME *INOUT = C_NAME *OUTPUT;
+
+%typemap(in) const C_NAME & (C_NAME temp) {
+   temp = PG_TO_C($input);
+   $1 = &temp;
+}
+%typemap(out) const C_NAME & {
+  $result = C_TO_PG(*$1);
+}
 %enddef
 
 
-SIMPLE_MAP(void, SWIG_PG_VOIDP,
+SIMPLE_MAP(void,
      swig_pg_datum_to_void, swig_pg_void_to_datum,
      "VOID");
-SIMPLE_MAP(bool, SWIG_PG_BOOLP,
+SIMPLE_MAP(bool,
      DatumGetBool, BoolGetDatum,
      "BOOLEAN");
 // ??? Handle with DatumGetVarCharP, CStringGetDatum
-SIMPLE_MAP(char, SWIG_PG_CHARP,
+SIMPLE_MAP(char,
      swig_pg_datum_to_char, swig_pg_char_to_datum,
      "CHAR(1)");
-SIMPLE_MAP(unsigned char, SWIG_PG_CHARP,
+SIMPLE_MAP(unsigned char,
      swig_pg_datum_to_uchar, swig_pg_uchar_to_datum,
      "CHAR(1)");
-SIMPLE_MAP(short, swig_pg_is_integer,
+SIMPLE_MAP(short,
      DatumGetInt16, Int16GetDatum,
      "SMALLINT");
-SIMPLE_MAP(unsigned short, SWIG_is_unsigned_integer,
+SIMPLE_MAP(unsigned short,
      DatumGetUInt16, UInt32GetDatum,
      "INTEGER");
-SIMPLE_MAP(int, swig_pg_is_integer,
+SIMPLE_MAP(int,
      DatumGetInt32, Int32GetDatum,
      "INTEGER");
-SIMPLE_MAP(unsigned int, SWIG_is_unsigned_integer,
+SIMPLE_MAP(unsigned int,
      DatumGetUInt32, UInt32GetDatum,
      "BIGINT");
-SIMPLE_MAP(long, swig_pg_is_integer,
+SIMPLE_MAP(long,
      DatumGetInt64, Int64GetDatum,
      "BIGINT");
-SIMPLE_MAP(ptrdiff_t, swig_pg_is_integer,
+SIMPLE_MAP(ptrdiff_t,
      DatumGetInt64, Int64GetDatum,
      "BIGINT");
-SIMPLE_MAP(unsigned long, SWIG_is_unsigned_integer,
+SIMPLE_MAP(unsigned long,
      DatumGetUInt64, UInt64GetDatum,
      "BIGINT");
-SIMPLE_MAP(size_t, SWIG_is_unsigned_integer,
+SIMPLE_MAP(size_t,
      DatumGetUInt64, UInt64GetDatum,
      "BIGINT");
-SIMPLE_MAP(float, swig_pg_is_float,
+SIMPLE_MAP(float,
      DatumGetFloat4, Float4GetDatum,
      "FLOAT4");
-SIMPLE_MAP(double, swig_pg_is_float,
+SIMPLE_MAP(double,
      DatumGetFloat8, Float8GetDatum,
      "FLOAT8");
 
 
 // ??? memory mgmt?
 // Does DatumGetCString work with pg TEXT type?
-SIMPLE_MAP(char *, SWIG_PG_STRINGP,
+SIMPLE_MAP(char *,
      swig_pg_datum_to_cstring, swig_pg_cstring_to_datum,
      "TEXT");
-SIMPLE_MAP(const char *, SWIG_PG_STRINGP,
+SIMPLE_MAP(const char *,
      swig_pg_datum_to_cstring, swig_pg_cstring_to_datum,
      "TEXT");
-
-/* Const primitive references.  Passed by value */
-/* !!! : TODO */
-
-%define REF_MAP(C_NAME, PG_PREDICATE, PG_TO_C, C_TO_PG, PG_NAME)
-  %typemap(in) const C_NAME & (C_NAME temp) {
-     if (!PG_PREDICATE($input))
-        swig_pg_wrong_type(#PG_NAME, $argnum - 1);
-     temp = PG_TO_C($input);
-     $1 = &temp;
-  }
-  %typemap(out) const C_NAME & {
-    $result = C_TO_PG(*$1);
-  }
-%enddef
-
-REF_MAP(bool, SWIG_PG_BOOLP, SWIG_PG_TRUEP,
-	   swig_make_boolean, boolean);
-REF_MAP(char, SWIG_PG_CHARP, SWIG_PG_CHAR_VAL,
-	   swig_pg_make_character, character);
-REF_MAP(unsigned char, SWIG_PG_CHARP, SWIG_PG_CHAR_VAL,
-	   swig_pg_make_character, character);
-REF_MAP(int, swig_pg_is_integer, SWIG_convert_int,
-	   swig_pg_make_integer_value, integer);
-REF_MAP(short, swig_pg_is_integer, SWIG_convert_short,
-	   swig_pg_make_integer_value, integer);
-REF_MAP(long, swig_pg_is_integer, SWIG_convert_long,
-	   swig_pg_make_integer_value, integer);
-REF_MAP(unsigned int, SWIG_is_unsigned_integer, SWIG_convert_unsigned_int,
-	   swig_pg_make_integer_value_from_unsigned, integer);
-REF_MAP(unsigned short, SWIG_is_unsigned_integer, SWIG_convert_unsigned_short,
-	   swig_pg_make_integer_value_from_unsigned, integer);
-REF_MAP(unsigned long, SWIG_is_unsigned_integer, SWIG_convert_unsigned_long,
-	   swig_pg_make_integer_value_from_unsigned, integer);
-REF_MAP(float, swig_pg_is_float, DatumGetFloat8,
-	   Float8GetDatum, real);
-REF_MAP(double, swig_pg_is_float, DatumGetFloat8,
-	   Float8GetDatum, real);
 
 %typemap(throws) char * {
   swig_pg_signal_error("%s: %s", FUNC_NAME, $1);
