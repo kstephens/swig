@@ -583,16 +583,9 @@ public:
     String *actioncode = emit_action(n);
 
     // Now have return value, figure out what to do with it.
-    pg_return     = Swig_typemap_lookup    ("pg_return", n, Swig_cresult_name(), 0);
     tm            = Swig_typemap_lookup_out("out",       n, Swig_cresult_name(), f, actioncode);
-    String *rtn = 0;
 
-    if ( pg_return ) {
-      rtn = NewString(pg_return);
-      Replaceall(rtn, "$result", "result");
-      Replaceall(tm, "$result", "result");
-    } else if ( tm ) {
-      rtn = NewString("return swig_pg_result");
+    if ( tm ) {
       Replaceall(tm, "$result", "swig_pg_result");
       Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "1" : "0");
       Printv(f->code, tm, "\n", NIL);
@@ -633,7 +626,7 @@ public:
       "  PG_END_TRY();\n",
       NIL);
 
-    Printv(f->code, "  ", rtn, ";\n", NIL);
+    Printv(f->code, "  return swig_pg_result;\n", NIL);
 
     Printv(f->code, "#undef FUNC_NAME\n", NIL);
     Printv(f->code, "}\n", NIL);
@@ -687,7 +680,6 @@ public:
     Delete(outarg);
     Delete(cleanup);
     Delete(build);
-    Delete(pg_return);
     DelWrapper(f);
     return SWIG_OK;
   }
