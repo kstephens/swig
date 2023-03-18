@@ -230,7 +230,7 @@ We use the TEXT type to represent strings.
 
 
 SIMPLE_MAP(void, SWIG_PG_VOIDP,
-     swig_DatumGetVoid, swig_VoidGetDatum,
+     swig_pg_datum_to_void, swig_pg_void_to_datum,
      "VOID");
 SIMPLE_MAP(bool, SWIG_PG_BOOLP,
      DatumGetBool, BoolGetDatum,

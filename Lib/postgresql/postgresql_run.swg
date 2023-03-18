@@ -138,28 +138,43 @@ swig_pg_malloc_(SWIG_PG_ERROR_PARAMS, size_t size) {
 /****************************************************/
 /* Type helpers */
 
+
+/****************************************************/
+
+#define swig_pg_void_to_datum(...) swig_pg_void
+#define swig_pg_datum_to_void(...) ((void) 0)
+
 // See: postgres/src/include/utils/builtins.h
 //      postgres/src/backend/utils/adt/varlena.c
-static Datum swig_pg_cstring_to_datum(const char *str) {
-  return PointerGetDatum(cstring_to_text(str));
-}
 static Datum swig_pg_cstring_len_to_datum(const char *src, size_t len) {
   return PointerGetDatum(cstring_to_text_with_len(src, len));
 }
+static Datum swig_pg_cstring_to_datum(const char *str) {
+  return swig_pg_cstring_len_to_datum(str, strlen(str));
+}
 // Caller must pfree().
 static char* swig_pg_datum_to_cstring(Datum d) {
-  // TODO: typecheck?
   return text_to_cstring(DatumGetTextPP(d));
 }
 
-static Datum swig_pg_char_to_datum(int c) {
+static Datum swig_pg_char_to_datum(char c) {
   char src[2] = { c, 0 };
   return swig_pg_cstring_len_to_datum(src, 1);
 }
 static int swig_pg_datum_to_char(Datum d) {
   // TODO: typecheck?
-  char dst[2] = { -1, 0 };
+  char dst[2] = { 0, 0 };
   text_to_cstring_buffer(DatumGetTextPP(d), dst, 1);
+  return dst[0];
+}
+static Datum swig_pg_uchar_to_datum(unsigned char c) {
+  unsigned char src[2] = { c, 0 };
+  return swig_pg_cstring_len_to_datum((char*) src, 1);
+}
+static int swig_pg_datum_to_uchar(Datum d) {
+  // TODO: typecheck?
+  unsigned char dst[2] = { 0, 0 };
+  text_to_cstring_buffer(DatumGetTextPP(d), (char*) dst, 1);
   return dst[0];
 }
 
