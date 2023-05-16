@@ -40,6 +40,7 @@ static String *extension_name = 0;
 static String *extension_version = 0;
 static String *extension_schema = 0;
 static String *extension_schema_prefix = 0;
+static const char *case_sensitive_quote = "";
 static const char *postgresql_path = "postgresql";
 static String *init_func_def = 0;
 
@@ -113,6 +114,8 @@ public:
     } else {
       Swig_arg_error();
     }
+	} else if (strcmp(argv[i], "-case-sensitive") == 0) {
+	  case_sensitive_quote = "\"";
 	} else if (strcmp(argv[i], "-declaremodule") == 0) {
 	  declaremodule = true;
 	  Swig_mark_arg(i);
@@ -135,7 +138,7 @@ public:
 
     if ( ! extension_name ) extension_name = module;
     if ( ! extension_version ) extension_version = NewString("0.0.1");
-    extension_schema_prefix = NewStringf(extension_schema ? "\"%s\"." : "", extension_schema);
+    extension_schema_prefix = NewStringf(extension_schema ? "%s%s%s." : "", case_sensitive_quote, extension_schema, case_sensitive_quote);
 
     // If a prefix has been specified make sure it ends in a '_' (not actually used!)
     if (prefix) {
@@ -289,6 +292,7 @@ public:
 
   void generate_file(Node *n, String *f, const char *str) {
     String* tmpl = NewString(str);
+    Replaceall(tmpl, "$\"", case_sensitive_quote);
     Replaceall(tmpl, "${extension_name}"   , extension_name);
     Replaceall(tmpl, "${extension_version}", extension_version);
     if ( extension_schema ) {
@@ -344,12 +348,13 @@ public:
 
   void create_pg_test(Node *n) {
     assert(f_pg_test);
+    // ??? Should the extension name always be quoted?
     generate_file(n, f_pg_test,
       "-- -----------------------------------------------------\n"
       "-- ${extension_name}_test.sql:\n"
       "\n"
-      "DROP EXTENSION IF EXISTS ${extension_name};\n"
-      "CREATE EXTENSION ${extension_name};\n"
+      "DROP EXTENSION IF EXISTS $\"${extension_name}$\";\n"
+      "CREATE EXTENSION $\"${extension_name}$\";\n"
       "\n"
       "-- -----------------------------------------------------\n");
   }
@@ -365,8 +370,7 @@ public:
 
   /* Return true iff T is a pointer type */
 
-  int
-   is_a_pointer(SwigType *t) {
+  int is_a_pointer(SwigType *t) {
     return SwigType_ispointer(SwigType_typedef_resolve_all(t));
   }
 
@@ -386,7 +390,7 @@ public:
     String *extension_dir = NewString("");
     Printv(extension_dir, "$libdir/", module, NIL);
 
-    Printf(f_pg_sql, "CREATE FUNCTION %s%s (", extension_schema_prefix, pg_name, NIL);
+    Printf(f_pg_sql, "CREATE FUNCTION %s%s%s%s (", extension_schema_prefix, case_sensitive_quote, pg_name, case_sensitive_quote, NIL);
     if ( l )  {
       Parm *p;
       int i = 0;
