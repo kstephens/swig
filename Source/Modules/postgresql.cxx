@@ -306,7 +306,7 @@ public:
   void begin_pg_sql(Node *n) {
     generate_file(n, f_pg_sql,
       "-- -----------------------------------------------------\n"
-      "-- ${extension_name}--${extension_version}.sql:\n\n");
+      "-- SWIG : ${extension_name}--${extension_version}.sql:\n\n");
     if ( extension_schema ) {
       Printf(f_pg_sql, "CREATE SCHEMA IF NOT EXISTS \"%s\";\n\n", extension_schema);
     }
@@ -320,7 +320,7 @@ public:
   void create_pg_control(Node *n) {
     generate_file(n, f_pg_control,
       "########################################################\n"
-      "# ${extension_name}.control:\n"
+      "# SWIG : ${extension_name}.control:\n"
       "\n"
       "comment           = '${extension_name} extension'\n"
       "default_version   = '${extension_version}'\n"
@@ -332,7 +332,7 @@ public:
   void create_pg_make(Node *n) {
     generate_file(n, f_pg_make,
       "########################################################\n"
-      "# ${extension_name}.make:\n"
+      "# SWIG : ${extension_name}.make:\n"
       "\n"
       "EXTENSION   = ${extension_name}\n"
       "DATA        = ${extension_name}--${extension_version}.sql\n"
@@ -351,7 +351,7 @@ public:
     // ??? Should the extension name always be quoted?
     generate_file(n, f_pg_test,
       "-- -----------------------------------------------------\n"
-      "-- ${extension_name}_test.sql:\n"
+      "-- SWIG : ${extension_name}_test.sql:\n"
       "\n"
       "DROP EXTENSION IF EXISTS $\"${extension_name}$\";\n"
       "CREATE EXTENSION $\"${extension_name}$\";\n"
