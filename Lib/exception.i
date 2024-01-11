@@ -317,7 +317,7 @@ SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
 
 /* rethrow the unknown exception */
 
-#if defined(SWIGCSHARP) || defined(SWIGD)
+#if defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGPOSTGRESQL)
 %typemap(throws,noblock=1, canthrow=1) (...) {
   SWIG_exception(SWIG_RuntimeError,"unknown exception");
 }
