@@ -644,7 +644,7 @@ public:
 
       // Now register the function
       char temp[256];
-      snprintf(temp, sizeof(temp), "%d", numargs);
+      sprintf(temp, "%d", numargs);
       if (exporting_destructor) {
 	Printf(init_func_def, "SWIG_TypeClientData(SWIGTYPE%s, (void *) %s);\n", swigtype_ptr, wname);
       }
