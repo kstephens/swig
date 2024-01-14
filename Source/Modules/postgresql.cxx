@@ -374,6 +374,11 @@ public:
     return SwigType_ispointer(SwigType_typedef_resolve_all(t));
   }
 
+  void dump_obj(const DOH *obj) {
+    String *out = NewString("");
+    DohDump(obj, out);
+    fprintf(stderr, "DUMP\n:%s\n:::::::::::::", (char*) DohData(out));
+  }
 
   /* ------------------------------------------------------------
    * Postgres: CREATE FUNCTION declaration.
@@ -400,6 +405,10 @@ public:
         String   *pname    = Getattr(p, "name");
         SwigType *pt       = Getattr(p, "type");
         String   *pg_type  = Getattr(p, "tmap:pg_type");
+        if ( Getattr(pname, "self") ) {
+          dump_obj(pt);
+          // abort();
+        }
         if ( i > 0 )
           Printf(f_pg_sql, ",");
         Printf(f_pg_sql, "\n    \"%s\" %s", pname, pg_type);
