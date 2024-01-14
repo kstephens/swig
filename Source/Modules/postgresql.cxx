@@ -733,16 +733,17 @@ public:
       Wrapper_add_local(f, "swig_pg_result", "Datum swig_pg_result = swig_pg_void");
 
       if (!GetFlag(n, "feature:immutable")) {
-      	/* Check for a setting of the variable value */
-	Printf(f->code, "if (PG_NARGS()) {\n");
-	if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	  Replaceall(tm, "$input", "PG_GETARG_DATUM(0)");
-	  Replaceall(tm, "$argnum", "1");
-	  emit_action_code(n, f->code, tm);
-	} else {
-	  throw_unhandled_postgresql_type_error(t);
-	}
-	Printf(f->code, "}\n");
+        Setattr(n, "wrap:setter_arg", "1");
+        /* Check for a setting of the variable value */
+        Printf(f->code, "if (PG_NARGS()) {\n");
+        if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
+          Replaceall(tm, "$input", "PG_GETARG_DATUM(0)");
+          Replaceall(tm, "$argnum", "1");
+          emit_action_code(n, f->code, tm);
+        } else {
+          throw_unhandled_postgresql_type_error(t);
+        }
+        Printf(f->code, "}\n");
       }
       // Now return the value of the variable (regardless
       // of evaluating or setting)
